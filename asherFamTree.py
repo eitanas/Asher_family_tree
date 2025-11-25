@@ -617,10 +617,8 @@ def generate_graph(dataframe):
         }
         """)
 
-    # Save to temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp:
-        net.save_graph(tmp.name)
-        return tmp.name
+    # Return HTML string directly for Streamlit embedding
+    return net.generate_html()
 
 # --- 5. Render the Graph in Tab 2 ---
 with tab2:
@@ -637,7 +635,7 @@ with tab2:
         else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-                    html_path = generate_graph(edited_df)
+                    graph_html = generate_graph(edited_df)
                     
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
@@ -653,9 +651,7 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
                     
-                    with open(html_path, 'r', encoding='utf-8') as f:
-                        source_code = f.read()
-                    components.html(source_code, height=750)
+                    components.html(graph_html, height=750, scrolling=True)
                     
                 except Exception as e:
                     st.error(f"Error generating visualization: {str(e)}")
