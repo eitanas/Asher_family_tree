@@ -547,15 +547,15 @@ with tab2:
             st.session_state.update_viz = True
     
     if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-    st.session_state.first_run = False
-    
-    if edited_df.empty:
+        st.session_state.first_run = False
+        
+        if edited_df.empty:
             st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-    else:
+        else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-        html_path = generate_graph(edited_df)
-        
+                    html_path = generate_graph(edited_df)
+                    
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
                     search_col1, search_col2 = st.columns(2)
@@ -570,8 +570,8 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
                     
-        with open(html_path, 'r', encoding='utf-8') as f:
-            source_code = f.read()
+                    with open(html_path, 'r', encoding='utf-8') as f:
+                        source_code = f.read()
                     components.html(source_code, height=750)
                     
                 except Exception as e:
