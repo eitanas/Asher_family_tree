@@ -42,7 +42,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "�
 with tab1:
     st.markdown("""
     ### Genealogical Data Management
-    **Instructions:**
+**Instructions:**
     - Add family members with complete biographical information
     - Ensure parent-child relationships are correctly specified
     - Birth year must be before death year
@@ -291,15 +291,15 @@ with tab1:
                     else:
                         st.error("Name is required!")
         
-        edited_df = st.data_editor(
-            st.session_state.df,
+edited_df = st.data_editor(
+    st.session_state.df,
             column_config=column_config,
             num_rows="dynamic",
-            use_container_width=True,
+    use_container_width=True,
             hide_index=True,
-            key="data_editor"
-        )
-        
+    key="data_editor"
+)
+
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
             gen_map = calculate_generation(edited_df)
@@ -428,7 +428,8 @@ def generate_graph(dataframe):
     bg_brightness = int(bg_color[1:3], 16) + int(bg_color[3:5], 16) + int(bg_color[5:7], 16)
     font_color = "#2C3E50" if bg_brightness > 384 else "#ECEFF1"  # Dark text on light bg, light text on dark bg
     
-    net = Network(height="700px", width="100%", bgcolor=bg_color, font_color=font_color)
+    # FORCE REMOTE CDN RESOURCES -> Fixes blank graph on Streamlit Cloud
+    net = Network(height="700px", width="100%", bgcolor=bg_color, font_color=font_color, cdn_resources='remote')
     
     # Calculate descendants for sizing if needed
     descendants_count = {}
@@ -628,15 +629,15 @@ with tab2:
             st.session_state.update_viz = True
     
     if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-        st.session_state.first_run = False
-        
-        if edited_df.empty:
+    st.session_state.first_run = False
+    
+    if edited_df.empty:
             st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-        else:
+    else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-                    html_path = generate_graph(edited_df)
-                    
+        html_path = generate_graph(edited_df)
+        
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
                     search_col1, search_col2 = st.columns(2)
@@ -651,8 +652,8 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
                     
-                    with open(html_path, 'r', encoding='utf-8') as f:
-                        source_code = f.read()
+        with open(html_path, 'r', encoding='utf-8') as f:
+            source_code = f.read()
                     components.html(source_code, height=750)
                     
                 except Exception as e:
