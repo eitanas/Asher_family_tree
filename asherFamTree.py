@@ -240,14 +240,14 @@ with tab1:
             "Notes": st.column_config.TextColumn("Notes", help="Additional information")
         }
         
-edited_df = st.data_editor(
-    st.session_state.df,
+        edited_df = st.data_editor(
+            st.session_state.df,
             column_config=column_config,
             num_rows="dynamic",
-    use_container_width=True,
+            use_container_width=True,
             hide_index=True,
-    key="data_editor"
-)
+            key="data_editor"
+        )
 
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
