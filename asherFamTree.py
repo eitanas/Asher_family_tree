@@ -42,7 +42,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "�
 with tab1:
     st.markdown("""
     ### Genealogical Data Management
-    **Instructions:**
+**Instructions:**
     - Add family members with complete biographical information
     - Ensure parent-child relationships are correctly specified
     - Birth year must be before death year
@@ -237,10 +237,10 @@ def calculate_generation(df):
 # --- 2. The Editable Data Editor (in Tab 1) ---
 with tab1:
     col1, col2 = st.columns([3, 1])
-    
+
     with col1:
         st.subheader("📝 Family Member Data")
-        
+
         # Configure column types for the data editor
         column_config = {
             "Name": st.column_config.TextColumn("Full Name", required=True, help="Person's full name"),
@@ -256,7 +256,7 @@ with tab1:
             "Highlight": st.column_config.CheckboxColumn("Highlight", help="Highlight in visualization"),
             "Notes": st.column_config.TextColumn("Notes", help="Additional information")
         }
-        
+
         # Add "Quick Add" expandable form
         with st.expander("➕ Quick Add Family Member"):
             with st.form("add_member_form"):
@@ -264,14 +264,14 @@ with tab1:
                 new_name = c1.text_input("Full Name")
                 new_parent = c2.selectbox("Parent", [""] + sorted(st.session_state.df['Name'].astype(str).unique().tolist()))
                 new_gender = c3.selectbox("Gender", ["Male", "Female", "Unknown"])
-                
+
                 c4, c5, c6 = st.columns(3)
                 new_birth = c4.number_input("Birth Year", min_value=1700, max_value=2025, value=None, placeholder="YYYY")
                 new_death = c5.number_input("Death Year", min_value=1700, max_value=2025, value=None, placeholder="Living")
                 new_location = c6.text_input("Location")
-                
+
                 new_photo = st.text_input("Photo URL (optional)")
-                
+
                 if st.form_submit_button("Add Member"):
                     if new_name:
                         new_row = {
@@ -282,7 +282,7 @@ with tab1:
                             "Location": new_location,
                             "Gender": new_gender,
                             "Photo": new_photo,
-                            "Generation": 1, # Placeholder, will be auto-calculated
+                            "Generation": 1,  # Placeholder, will be auto-calculated
                             "Highlight": False
                         }
                         st.session_state.df = pd.concat([st.session_state.df, pd.DataFrame([new_row])], ignore_index=True)
@@ -290,8 +290,7 @@ with tab1:
                         st.rerun()
                     else:
                         st.error("Name is required!")
-        
-        # Ensure consistent indentation (8 spaces) for edited_df
+
         edited_df = st.data_editor(
             st.session_state.df,
             column_config=column_config,
@@ -300,7 +299,7 @@ with tab1:
             hide_index=True,
             key="data_editor"
         )
-        
+
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
             gen_map = calculate_generation(edited_df)
@@ -309,20 +308,20 @@ with tab1:
                     edited_df.at[idx, 'Generation'] = gen_map[row['Name']]
             st.session_state.df = edited_df
             st.rerun()
-    
+
     with col2:
         st.subheader("🔍 Data Validation")
-        
+
         # Validate the data
         validation_errors = validate_dates(edited_df)
-        
+
         if validation_errors:
             st.error("Data Issues Found:")
             for error in validation_errors:
                 st.write(error)
         else:
             st.success("✅ All data validated successfully!")
-        
+
         # Quick stats
         st.metric("Total Members", len(edited_df))
         st.metric("Generations", edited_df['Generation'].max() if not edited_df.empty else 0)
@@ -626,33 +625,35 @@ with tab2:
     with col2:
         if st.button("🔄 Generate/Update Family Tree Visualization", type="primary", use_container_width=True):
             st.session_state.update_viz = True
-    
+
     if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
         st.session_state.first_run = False
-        
+
         if edited_df.empty:
             st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
         else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
                     graph_html = generate_graph(edited_df)
-                    
+
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
                     search_col1, search_col2 = st.columns(2)
                     with search_col1:
                         search_term = st.text_input("Search by name:", placeholder="Enter name...")
                     with search_col2:
-                        search_gen = st.selectbox("Filter by generation:", 
-                                                 ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
-                                                 if not edited_df.empty else ["All"])
-                    
+                        search_gen = st.selectbox(
+                            "Filter by generation:",
+                            ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
+                            if not edited_df.empty else ["All"]
+                        )
+
                     # Display the interactive graph
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
-                    
+
                     components.html(graph_html, height=750, scrolling=True)
-                    
+
                 except Exception as e:
                     st.error(f"Error generating visualization: {str(e)}")
 
