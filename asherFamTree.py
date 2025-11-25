@@ -188,6 +188,12 @@ initial_data = load_family_data_from_json()
 if 'df' not in st.session_state:
     st.session_state.df = pd.DataFrame(initial_data)
 
+if 'first_run' not in st.session_state:
+    st.session_state.first_run = True
+
+if 'update_viz' not in st.session_state:
+    st.session_state.update_viz = True
+
 # Add a reset/reload button
 st.sidebar.markdown("---")
 if st.sidebar.button("🔄 Reload Original Data"):
