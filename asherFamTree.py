@@ -9,7 +9,7 @@ import json
 import re
 import os
 
-# Version 1.2 - Fully fixed indentation and features
+# Version 1.4 - Final verified indentation fix
 # --- Page Configuration ---
 st.set_page_config(layout="wide", page_title="Interactive Family Tree Editor", page_icon="🌳")
 
@@ -42,7 +42,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "�
 with tab1:
     st.markdown("""
     ### Genealogical Data Management
-**Instructions:**
+    **Instructions:**
     - Add family members with complete biographical information
     - Ensure parent-child relationships are correctly specified
     - Birth year must be before death year
@@ -291,15 +291,16 @@ with tab1:
                     else:
                         st.error("Name is required!")
         
-edited_df = st.data_editor(
-    st.session_state.df,
+        # Ensure consistent indentation (8 spaces) for edited_df
+        edited_df = st.data_editor(
+            st.session_state.df,
             column_config=column_config,
             num_rows="dynamic",
-    use_container_width=True,
+            use_container_width=True,
             hide_index=True,
-    key="data_editor"
-)
-
+            key="data_editor"
+        )
+        
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
             gen_map = calculate_generation(edited_df)
@@ -629,15 +630,15 @@ with tab2:
             st.session_state.update_viz = True
     
     if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-    st.session_state.first_run = False
-    
-    if edited_df.empty:
+        st.session_state.first_run = False
+        
+        if edited_df.empty:
             st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-    else:
+        else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-        html_path = generate_graph(edited_df)
-        
+                    html_path = generate_graph(edited_df)
+                    
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
                     search_col1, search_col2 = st.columns(2)
@@ -652,8 +653,8 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
                     
-        with open(html_path, 'r', encoding='utf-8') as f:
-            source_code = f.read()
+                    with open(html_path, 'r', encoding='utf-8') as f:
+                        source_code = f.read()
                     components.html(source_code, height=750)
                     
                 except Exception as e:
@@ -730,7 +731,7 @@ with tab3:
     else:
         st.info("📝 Please add family data in the Data Entry tab to see statistics.")
 
-# --- 7. Help Tab ---
+# --- 8. Help Tab ---
 with tab4:
     st.subheader("ℹ️ How to Use This Family Tree System")
     
