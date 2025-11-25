@@ -31,7 +31,7 @@ st.markdown("""
 st.markdown('<h1 class="main-header">🌳 Asher Family Digital Lineage System</h1>', unsafe_allow_html=True)
 
 # Create tabs for better organization
-tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "ℹ️ Help"])
+tab1, tab2, tab3, tab5, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "📜 Original Document", "ℹ️ Help"])
 
 with tab1:
     st.markdown("""
@@ -284,14 +284,14 @@ with tab1:
                     else:
                         st.error("Name is required!")
 
-        edited_df = st.data_editor(
-            st.session_state.df,
+edited_df = st.data_editor(
+    st.session_state.df,
             column_config=column_config,
             num_rows="dynamic",
-            use_container_width=True,
+    use_container_width=True,
             hide_index=True,
-            key="data_editor"
-        )
+    key="data_editor"
+)
 
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
@@ -621,15 +621,15 @@ with tab2:
             st.session_state.update_viz = True
     
     if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-        st.session_state.first_run = False
-        
-        if edited_df.empty:
+    st.session_state.first_run = False
+    
+    if edited_df.empty:
             st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-        else:
+    else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-                    html_path = generate_graph(edited_df)
-                    
+        html_path = generate_graph(edited_df)
+        
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
                     search_col1, search_col2 = st.columns(2)
@@ -644,8 +644,8 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
                     
-                    with open(html_path, 'r', encoding='utf-8') as f:
-                        source_code = f.read()
+        with open(html_path, 'r', encoding='utf-8') as f:
+            source_code = f.read()
                     components.html(source_code, height=750)
                     
                 except Exception as e:
@@ -722,7 +722,21 @@ with tab3:
     else:
         st.info("📝 Please add family data in the Data Entry tab to see statistics.")
 
-# --- 7. Help Tab ---
+# --- 7. Original Document Tab ---
+with tab5:
+    st.subheader("📜 Original Family Tree Document")
+    st.markdown("This is the original handwritten document that serves as the source for this digital tree.")
+    
+    # Use relative path for cloud compatibility
+    original_img_path = "original_tree.jpg"
+    
+    if os.path.exists(original_img_path):
+        st.image(original_img_path, caption="Original Asher Family Tree Document", use_container_width=True)
+    else:
+        st.warning(f"Original image not found at: {original_img_path}")
+        st.info("Please ensure 'original_tree.jpg' is in the repository root.")
+
+# --- 8. Help Tab ---
 with tab4:
     st.subheader("ℹ️ How to Use This Family Tree System")
     
