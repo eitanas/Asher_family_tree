@@ -9,6 +9,7 @@ import json
 import re
 import os
 
+# Version 1.1 - Fixed indentation issues for deployment
 # --- Page Configuration ---
 st.set_page_config(layout="wide", page_title="Interactive Family Tree Editor", page_icon="🌳")
 
