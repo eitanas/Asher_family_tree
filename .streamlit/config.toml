@@ -1,0 +1,16 @@
+[theme]
+# Professional theme settings for genealogy visualization
+primaryColor = "#E8B04B"  # Warm gold for accents
+backgroundColor = "#FAFAFA"  # Off-white background
+secondaryBackgroundColor = "#F0F2F6"  # Light gray for sidebars
+textColor = "#2C3E50"  # Dark gray-blue for text
+font = "sans serif"
+
+[server]
+# Server settings for deployment
+headless = true
+port = 8501
+
+[browser]
+# Browser settings
+gatherUsageStats = false
