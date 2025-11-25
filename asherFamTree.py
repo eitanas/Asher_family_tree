@@ -30,8 +30,14 @@ st.markdown("""
 
 st.markdown('<h1 class="main-header">🌳 Asher Family Digital Lineage System</h1>', unsafe_allow_html=True)
 
+# Display original document on main page
+original_img_path = "original_tree.jpg"
+if os.path.exists(original_img_path):
+    with st.expander("📜 View Original Handwritten Document", expanded=False):
+        st.image(original_img_path, caption="Original Asher Family Tree Document", use_container_width=True)
+
 # Create tabs for better organization
-tab1, tab2, tab3, tab5, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "📜 Original Document", "ℹ️ Help"])
+tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "ℹ️ Help"])
 
 with tab1:
     st.markdown("""
@@ -723,21 +729,7 @@ with tab3:
     else:
         st.info("📝 Please add family data in the Data Entry tab to see statistics.")
 
-# --- 7. Original Document Tab ---
-with tab5:
-    st.subheader("📜 Original Family Tree Document")
-    st.markdown("This is the original handwritten document that serves as the source for this digital tree.")
-    
-    # Use relative path for cloud compatibility
-    original_img_path = "original_tree.jpg"
-    
-    if os.path.exists(original_img_path):
-        st.image(original_img_path, caption="Original Asher Family Tree Document", use_container_width=True)
-    else:
-        st.warning(f"Original image not found at: {original_img_path}")
-        st.info("Please ensure 'original_tree.jpg' is in the repository root.")
-
-# --- 8. Help Tab ---
+# --- 7. Help Tab ---
 with tab4:
     st.subheader("ℹ️ How to Use This Family Tree System")
     
