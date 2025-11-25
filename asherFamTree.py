@@ -9,7 +9,7 @@ import json
 import re
 import os
 
-# Version 1.1 - Fixed indentation issues for deployment
+# Version 1.2 - Fully fixed indentation and features
 # --- Page Configuration ---
 st.set_page_config(layout="wide", page_title="Interactive Family Tree Editor", page_icon="🌳")
 
@@ -36,7 +36,7 @@ tab1, tab2, tab3, tab5, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree"
 with tab1:
     st.markdown("""
     ### Genealogical Data Management
-**Instructions:**
+    **Instructions:**
     - Add family members with complete biographical information
     - Ensure parent-child relationships are correctly specified
     - Birth year must be before death year
@@ -154,6 +154,7 @@ def load_family_data_from_json():
                 "Gender": gender,
                 "Spouse": spouse,
                 "Occupation": person.get('occupation'),
+                "Photo": None, # No photos in initial JSON
                 "Generation": person.get('generation', 1),
                 "Highlight": person.get('highlighted', False),
                 "Notes": person.get('note', '')
@@ -171,7 +172,7 @@ def create_sample_data():
     return [
         {"Name": "Yosef Acher", "Parent": None, "Birth": 1775, "Death": None, 
          "Location": "Unknown", "Gender": "Male", "Spouse": None, "Occupation": None,
-         "Generation": 1, "Highlight": False, "Notes": "Patriarch of the Acher family"}
+         "Photo": None, "Generation": 1, "Highlight": False, "Notes": "Patriarch of the Acher family"}
     ]
 
 # Load initial data from JSON file
@@ -283,16 +284,16 @@ with tab1:
                         st.rerun()
                     else:
                         st.error("Name is required!")
-
-edited_df = st.data_editor(
-    st.session_state.df,
+        
+        edited_df = st.data_editor(
+            st.session_state.df,
             column_config=column_config,
             num_rows="dynamic",
-    use_container_width=True,
+            use_container_width=True,
             hide_index=True,
-    key="data_editor"
-)
-
+            key="data_editor"
+        )
+        
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
             gen_map = calculate_generation(edited_df)
@@ -621,15 +622,15 @@ with tab2:
             st.session_state.update_viz = True
     
     if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-    st.session_state.first_run = False
-    
-    if edited_df.empty:
+        st.session_state.first_run = False
+        
+        if edited_df.empty:
             st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-    else:
+        else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-        html_path = generate_graph(edited_df)
-        
+                    html_path = generate_graph(edited_df)
+                    
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
                     search_col1, search_col2 = st.columns(2)
@@ -644,8 +645,8 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
                     
-        with open(html_path, 'r', encoding='utf-8') as f:
-            source_code = f.read()
+                    with open(html_path, 'r', encoding='utf-8') as f:
+                        source_code = f.read()
                     components.html(source_code, height=750)
                     
                 except Exception as e:
