@@ -104,10 +104,13 @@ def infer_gender(name, spouse_info=None):
 
 def load_family_data_from_json():
     """Load and transform family data from JSON file"""
-    json_path = "/Users/eitan/Library/CloudStorage/GoogleDrive-eitanas85@gmail.com/My Drive/Personal/AsherFamily/family_data.json"
+    # Use relative path that works on both local and cloud
+    # On Streamlit Cloud, the working directory is the repo root
+    json_path = "family_data.json"
     
     # Check if JSON file exists
     if not os.path.exists(json_path):
+        st.warning(f"JSON file not found at: {os.path.abspath(json_path)}")
         # Return sample data if JSON doesn't exist
         return create_sample_data()
     
