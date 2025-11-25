@@ -181,6 +181,12 @@ initial_data = load_family_data_from_json()
 if 'df' not in st.session_state:
     st.session_state.df = pd.DataFrame(initial_data)
 
+# Add a reset/reload button
+st.sidebar.markdown("---")
+if st.sidebar.button("🔄 Reload Original Data"):
+    st.session_state.df = pd.DataFrame(load_family_data_from_json())
+    st.rerun()
+
 # Helper Functions for Data Validation
 def validate_dates(df):
     """Validate date consistency in family tree"""
@@ -238,11 +244,46 @@ with tab1:
             "Location": st.column_config.TextColumn("Location", help="Birth or residence location"),
             "Spouse": st.column_config.TextColumn("Spouse Name", help="Name of spouse"),
             "Occupation": st.column_config.TextColumn("Occupation", help="Primary occupation"),
+            "Photo": st.column_config.LinkColumn("Photo URL", help="Link to photo (must be https://...)"),
             "Generation": st.column_config.NumberColumn("Generation", min_value=1, max_value=20),
             "Highlight": st.column_config.CheckboxColumn("Highlight", help="Highlight in visualization"),
             "Notes": st.column_config.TextColumn("Notes", help="Additional information")
         }
         
+        # Add "Quick Add" expandable form
+        with st.expander("➕ Quick Add Family Member"):
+            with st.form("add_member_form"):
+                c1, c2, c3 = st.columns(3)
+                new_name = c1.text_input("Full Name")
+                new_parent = c2.selectbox("Parent", [""] + sorted(st.session_state.df['Name'].astype(str).unique().tolist()))
+                new_gender = c3.selectbox("Gender", ["Male", "Female", "Unknown"])
+                
+                c4, c5, c6 = st.columns(3)
+                new_birth = c4.number_input("Birth Year", min_value=1700, max_value=2025, value=None, placeholder="YYYY")
+                new_death = c5.number_input("Death Year", min_value=1700, max_value=2025, value=None, placeholder="Living")
+                new_location = c6.text_input("Location")
+                
+                new_photo = st.text_input("Photo URL (optional)")
+                
+                if st.form_submit_button("Add Member"):
+                    if new_name:
+                        new_row = {
+                            "Name": new_name,
+                            "Parent": new_parent if new_parent else None,
+                            "Birth": new_birth,
+                            "Death": new_death,
+                            "Location": new_location,
+                            "Gender": new_gender,
+                            "Photo": new_photo,
+                            "Generation": 1, # Placeholder, will be auto-calculated
+                            "Highlight": False
+                        }
+                        st.session_state.df = pd.concat([st.session_state.df, pd.DataFrame([new_row])], ignore_index=True)
+                        st.success(f"Added {new_name}!")
+                        st.rerun()
+                    else:
+                        st.error("Name is required!")
+
         edited_df = st.data_editor(
             st.session_state.df,
             column_config=column_config,
@@ -456,8 +497,13 @@ def generate_graph(dataframe):
         if row.get('Gender') == 'Male':
             shape = "square"
         elif row.get('Gender') == 'Female':
-            shape = "ellipse"  # Ellipse looks more professional than circle
+            shape = "ellipse"
         
+        # Check for photo
+        image_url = row.get('Photo')
+        if pd.notna(image_url) and str(image_url).startswith('http'):
+            shape = "circularImage"
+            
         # Add subtle border color for depth
         border_color = "#4A5568" if bg_brightness > 384 else "#CBD5E0"
         
@@ -473,6 +519,7 @@ def generate_graph(dataframe):
                         }
                     }, 
                     shape=shape, 
+                    image=image_url if shape == "circularImage" else None,
                     size=size, 
                     borderWidth=2, 
                     borderWidthSelected=3,
@@ -520,22 +567,46 @@ def generate_graph(dataframe):
           "interaction": {{
             "dragNodes": true,
             "dragView": true,
-            "zoomView": true
+            "zoomView": true,
+            "zoomSpeed": 0.5
           }}
         }}
         """
         net.set_options(options)
     elif layout_type == "Circular":
         net.barnes_hut()
+        net.set_options("""
+        var options = {
+          "interaction": { "zoomSpeed": 0.5 }
+        }
+        """)
     elif layout_type == "Random":
         net.set_options("""
         var options = {
           "layout": { "randomSeed": 2 },
-          "physics": { "enabled": true }
+          "physics": { "enabled": true },
+          "interaction": { "zoomSpeed": 0.5 }
         }
         """)
     else:  # Physics (Organic)
         net.force_atlas_2based()
+        net.set_options("""
+        var options = {
+          "physics": {
+            "forceAtlas2Based": {
+              "gravitationalConstant": -50,
+              "centralGravity": 0.01,
+              "springLength": 100,
+              "springConstant": 0.08
+            },
+            "maxVelocity": 50,
+            "solver": "forceAtlas2Based",
+            "timestep": 0.35,
+            "stabilization": { "iterations": 150 }
+          },
+          "interaction": { "zoomSpeed": 0.5 }
+        }
+        """)
 
     # Save to temporary file
     with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp:
