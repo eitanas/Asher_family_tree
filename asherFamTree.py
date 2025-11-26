@@ -40,213 +40,11 @@ if os.path.exists(original_img_path):
 tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "ℹ️ Help"])
 
 with tab1:
-    st.markdown("""
-    ### Genealogical Data Management
-**Instructions:**
-    - Add family members with complete biographical information
-    - Ensure parent-child relationships are correctly specified
-    - Birth year must be before death year
-    - Children's birth years must be after parent's birth year
-    """)
-
-# --- 1. Load and Transform Family Data from JSON ---
-def parse_lifespan(lifespan_str):
-    """Parse lifespan string like '1850-1914' or '1975-' into birth and death years"""
-    if not lifespan_str or lifespan_str == "?":
-        return None, None
-    
-    # Handle various formats
-    lifespan_str = str(lifespan_str).strip()
-    
-    # Match patterns like "1850-1914", "1975-", "1850-?"
-    match = re.match(r'(\d{4})\s*[-–]\s*(\d{4}|\?)?', lifespan_str)
-    if match:
-        birth = int(match.group(1)) if match.group(1) else None
-        death = int(match.group(2)) if match.group(2) and match.group(2) != '?' else None
-        return birth, death
-    
-    # Try to match just a birth year
-    match = re.match(r'(\d{4})', lifespan_str)
-    if match:
-        return int(match.group(1)), None
-    
-    return None, None
-
-def infer_gender(name, spouse_info=None):
-    """Infer gender from name patterns"""
-    # Common male name endings/patterns
-    male_patterns = [
-        'Yosef', 'Moshe', 'Haim', 'David', 'Itzchak', 'Jack', 'Jacques', 
-        'Allen', 'Herbert', 'Alberto', 'Nathan', 'Samuel', 'Benjamin', 
-        'Jacob', 'Abraham', 'Isaac', 'Aaron', 'Daniel', 'Michael', 'Robert',
-        'Ephraim', 'Elia', 'Eli', 'Alan', 'Leonard', 'Eddie', 'Alon', 'Eitan'
-    ]
-    
-    # Common female name endings/patterns  
-    female_patterns = [
-        'Rivka', 'Ester', 'Matilda', 'Sara', 'Rachel', 'Bella', 'Gloria',
-        'Wendy', 'Rebecca', 'Miriam', 'Hannah', 'Sarah', 'Ruth', 'Naomi',
-        'Esther', 'Leah', 'Deborah', 'Susan', 'Linda', 'Nancy', 'Elizabeth',
-        'Becki', 'Joyce', 'Marlene', 'Eram'
-    ]
-    
-    name_lower = name.lower() if name else ""
-    
-    for pattern in male_patterns:
-        if pattern.lower() in name_lower:
-            return "Male"
-    
-    for pattern in female_patterns:
-        if pattern.lower() in name_lower:
-            return "Female"
-    
-    # Check spouse field for clues
-    if spouse_info and "wife" in str(spouse_info).lower():
-        return "Male"
-    elif spouse_info and "husband" in str(spouse_info).lower():
-        return "Female"
-    
-    return "Unknown"
-
-def load_family_data_from_json():
-    """Load and transform family data from JSON file"""
-    # Use relative path that works on both local and cloud
-    # On Streamlit Cloud, the working directory is the repo root
-    json_path = "family_data.json"
-    
-    # Check if JSON file exists
-    if not os.path.exists(json_path):
-        st.warning(f"JSON file not found at: {os.path.abspath(json_path)}")
-        # Return sample data if JSON doesn't exist
-        return create_sample_data()
-    
-    try:
-        # Read JSON file
-        with open(json_path, 'r', encoding='utf-8') as f:
-            # Remove comments from JSON (they're not valid JSON)
-            content = f.read()
-            # Remove single-line comments
-            content = re.sub(r'//.*?\n', '\n', content)
-            # Remove multi-line comments
-            content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
-            
-            json_data = json.loads(content)
-        
-        # Create ID to name mapping
-        id_to_name = {person['id']: person['name'] for person in json_data}
-        
-        # Transform to our DataFrame format
-        transformed_data = []
-        for person in json_data:
-            birth, death = parse_lifespan(person.get('lifespan', ''))
-            
-            # Get parent name from parent_id
-            parent_name = None
-            if 'parent_id' in person and person['parent_id']:
-                parent_name = id_to_name.get(person['parent_id'])
-            
-            # Extract spouse info
-            spouse = person.get('spouse')
-            
-            # Infer gender
-            gender = infer_gender(person['name'], spouse)
-            
-            transformed_data.append({
-                "Name": person['name'],
-                "Parent": parent_name,
-                "Birth": birth,
-                "Death": death,
-                "Location": person.get('location', 'Unknown'),
-                "Gender": gender,
-                "Spouse": spouse,
-                "Occupation": person.get('occupation'),
-                "Photo": None, # No photos in initial JSON
-                "Generation": person.get('generation', 1),
-                "Highlight": person.get('highlighted', False),
-                "Notes": person.get('note', '')
-            })
-        
-        return transformed_data
-        
-    except Exception as e:
-        st.error(f"Error loading JSON file: {str(e)}")
-        # Return sample data as fallback
-        return create_sample_data()
-
-def create_sample_data():
-    """Create sample data if JSON file is not available"""
-    return [
-        {"Name": "Yosef Acher", "Parent": None, "Birth": 1775, "Death": None, 
-         "Location": "Unknown", "Gender": "Male", "Spouse": None, "Occupation": None,
-         "Photo": None, "Generation": 1, "Highlight": False, "Notes": "Patriarch of the Acher family"}
-    ]
-
-# Load initial data from JSON file
-initial_data = load_family_data_from_json()
-
-# Load into Session State so edits persist
-if 'df' not in st.session_state:
-    st.session_state.df = pd.DataFrame(initial_data)
-
-if 'first_run' not in st.session_state:
-    st.session_state.first_run = True
-
-if 'update_viz' not in st.session_state:
-    st.session_state.update_viz = True
-
-# Add a reset/reload button
-st.sidebar.markdown("---")
-if st.sidebar.button("🔄 Reload Original Data"):
-    st.session_state.df = pd.DataFrame(load_family_data_from_json())
-    st.rerun()
-
-# Helper Functions for Data Validation
-def validate_dates(df):
-    """Validate date consistency in family tree"""
-    errors = []
-    for idx, row in df.iterrows():
-        # Check if death is after birth
-        if pd.notna(row['Birth']) and pd.notna(row['Death']):
-            if row['Death'] < row['Birth']:
-                errors.append(f"❌ {row['Name']}: Death year ({row['Death']}) is before birth year ({row['Birth']})")
-        
-        # Check parent-child birth year consistency
-        if pd.notna(row['Parent']) and pd.notna(row['Birth']):
-            parent_rows = df[df['Name'] == row['Parent']]
-            if not parent_rows.empty:
-                parent_birth = parent_rows.iloc[0]['Birth']
-                if pd.notna(parent_birth) and row['Birth'] < parent_birth + 15:
-                    errors.append(f"⚠️ {row['Name']}: Born when parent was less than 15 years old")
-    
-    return errors
-
-def calculate_generation(df):
-    """Automatically calculate generation levels"""
-    generation_map = {}
-    
-    # Find roots (no parents)
-    roots = df[df['Parent'].isna() | (df['Parent'] == '')]['Name'].tolist()
-    for root in roots:
-        generation_map[root] = 1
-    
-    # Calculate generations
-    changed = True
-    while changed:
-        changed = False
-        for idx, row in df.iterrows():
-            if row['Name'] not in generation_map and row['Parent'] in generation_map:
-                generation_map[row['Name']] = generation_map[row['Parent']] + 1
-                changed = True
-    
-    return generation_map
-
-# --- 2. The Editable Data Editor (in Tab 1) ---
-with tab1:
     col1, col2 = st.columns([3, 1])
-    
+
     with col1:
         st.subheader("📝 Family Member Data")
-        
+
         # Configure column types for the data editor
         column_config = {
             "Name": st.column_config.TextColumn("Full Name", required=True, help="Person's full name"),
@@ -262,7 +60,7 @@ with tab1:
             "Highlight": st.column_config.CheckboxColumn("Highlight", help="Highlight in visualization"),
             "Notes": st.column_config.TextColumn("Notes", help="Additional information")
         }
-        
+
         # Add "Quick Add" expandable form
         with st.expander("➕ Quick Add Family Member"):
             with st.form("add_member_form"):
@@ -270,14 +68,14 @@ with tab1:
                 new_name = c1.text_input("Full Name")
                 new_parent = c2.selectbox("Parent", [""] + sorted(st.session_state.df['Name'].astype(str).unique().tolist()))
                 new_gender = c3.selectbox("Gender", ["Male", "Female", "Unknown"])
-                
+
                 c4, c5, c6 = st.columns(3)
                 new_birth = c4.number_input("Birth Year", min_value=1700, max_value=2025, value=None, placeholder="YYYY")
                 new_death = c5.number_input("Death Year", min_value=1700, max_value=2025, value=None, placeholder="Living")
                 new_location = c6.text_input("Location")
-                
+
                 new_photo = st.text_input("Photo URL (optional)")
-                
+
                 if st.form_submit_button("Add Member"):
                     if new_name:
                         new_row = {
@@ -288,7 +86,7 @@ with tab1:
                             "Location": new_location,
                             "Gender": new_gender,
                             "Photo": new_photo,
-                            "Generation": 1, # Placeholder, will be auto-calculated
+                            "Generation": 1,  # Placeholder, will be auto-calculated
                             "Highlight": False
                         }
                         st.session_state.df = pd.concat([st.session_state.df, pd.DataFrame([new_row])], ignore_index=True)
@@ -296,15 +94,16 @@ with tab1:
                         st.rerun()
                     else:
                         st.error("Name is required!")
+
         edited_df = st.data_editor(
             st.session_state.df,
-                    column_config=column_config,
-                    num_rows="dynamic",
+            column_config=column_config,
+            num_rows="dynamic",
             use_container_width=True,
-                    hide_index=True,
+            hide_index=True,
             key="data_editor"
         )
-        
+
         # Auto-calculate generations button
         if st.button("🔢 Auto-Calculate Generations"):
             gen_map = calculate_generation(edited_df)
@@ -313,25 +112,24 @@ with tab1:
                     edited_df.at[idx, 'Generation'] = gen_map[row['Name']]
             st.session_state.df = edited_df
             st.rerun()
-    
+
     with col2:
         st.subheader("🔍 Data Validation")
-        
+
         # Validate the data
         validation_errors = validate_dates(edited_df)
-        
+
         if validation_errors:
             st.error("Data Issues Found:")
             for error in validation_errors:
                 st.write(error)
         else:
             st.success("✅ All data validated successfully!")
-        
+
         # Quick stats
         st.metric("Total Members", len(edited_df))
         st.metric("Generations", edited_df['Generation'].max() if not edited_df.empty else 0)
         st.metric("Living Members", len(edited_df[edited_df['Death'].isna()]))
-
 # --- 3. Sidebar Customization ---
 st.sidebar.header("🎨 Visualization Settings")
 st.sidebar.subheader("Color Scheme")
@@ -630,38 +428,37 @@ with tab2:
         if st.button("🔄 Generate/Update Family Tree Visualization", type="primary", use_container_width=True):
             st.session_state.update_viz = True
     
+    if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
+        st.session_state.first_run = False
 
-if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-    st.session_state.first_run = False
+        if edited_df.empty:
+            st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
+        else:
+            with st.spinner("🔄 Generating family tree visualization..."):
+                try:
+                    graph_html = generate_graph(edited_df)
 
-    if edited_df.empty:
-        st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-    else:
-        with st.spinner("🔄 Generating family tree visualization..."):
-            try:
-                graph_html = generate_graph(edited_df)
+                    # Add search functionality
+                    st.subheader("🔍 Search Family Members")
+                    search_col1, search_col2 = st.columns(2)
+                    with search_col1:
+                        search_term = st.text_input("Search by name:", placeholder="Enter name...")
+                    with search_col2:
+                        search_gen = st.selectbox(
+                            "Filter by generation:",
+                            ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
+                            if not edited_df.empty else ["All"]
+                        )
 
-                # Add search functionality
-                st.subheader("🔍 Search Family Members")
-                search_col1, search_col2 = st.columns(2)
-                with search_col1:
-                    search_term = st.text_input("Search by name:", placeholder="Enter name...")
-                with search_col2:
-                    search_gen = st.selectbox(
-                        "Filter by generation:",
-                        ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
-                        if not edited_df.empty else ["All"]
-                    )
+                    # Display the interactive graph
+                    st.subheader("🌳 Interactive Family Tree Visualization")
+                    st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
 
-                # Display the interactive graph
-                st.subheader("🌳 Interactive Family Tree Visualization")
-                st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
+                    components.html(graph_html, height=750, scrolling=True)
+                    st.session_state.update_viz = False
 
-                components.html(graph_html, height=750, scrolling=True)
-                st.session_state.update_viz = False
-
-            except Exception as e:
-                st.error(f"Error generating visualization: {str(e)}")
+                except Exception as e:
+                    st.error(f"Error generating visualization: {str(e)}")
 
 
 # --- 6. Statistics Tab ---
