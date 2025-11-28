@@ -395,7 +395,7 @@ def generate_graph(dataframe):
     bg_brightness = int(bg_color[1:3], 16) + int(bg_color[3:5], 16) + int(bg_color[5:7], 16)
     font_color = "#2C3E50" if bg_brightness > 384 else "#ECEFF1"  # Dark text on light bg, light text on dark bg
     
-    net = Network(height="700px", width="100%", bgcolor=bg_color, font_color=font_color, cdn_resources="remote")
+    net = Network(height="700px", width="100%", bgcolor=bg_color, font_color=font_color, cdn_resources="in_line")
     
     # Calculate descendants for sizing if needed
     descendants_count = {}
@@ -598,42 +598,45 @@ def generate_graph(dataframe):
 
 # --- 5. Render the Graph in Tab 2 ---
 with tab2:
+    # Center the button
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("🔄 Generate/Update Family Tree Visualization", type="primary", use_container_width=True):
             st.session_state.update_viz = True
 
-        if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-            st.session_state.first_run = False
+    # Display graph at full width (outside column constraint)
+    if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
+        st.session_state.first_run = False
 
-            if edited_df.empty:
-                st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-            else:
-                with st.spinner("🔄 Generating family tree visualization..."):
-                    try:
-                        graph_html = generate_graph(edited_df)
+        if edited_df.empty:
+            st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
+        else:
+            with st.spinner("🔄 Generating family tree visualization..."):
+                try:
+                    graph_html = generate_graph(edited_df)
 
-                        # Add search functionality
-                        st.subheader("🔍 Search Family Members")
-                        search_col1, search_col2 = st.columns(2)
-                        with search_col1:
-                            search_term = st.text_input("Search by name:", placeholder="Enter name...")
-                        with search_col2:
-                            search_gen = st.selectbox(
-                                "Filter by generation:",
-                                ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
-                                if not edited_df.empty else ["All"]
-                            )
+                    # Add search functionality
+                    st.subheader("🔍 Search Family Members")
+                    search_col1, search_col2 = st.columns(2)
+                    with search_col1:
+                        search_term = st.text_input("Search by name:", placeholder="Enter name...")
+                    with search_col2:
+                        search_gen = st.selectbox(
+                            "Filter by generation:",
+                            ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
+                            if not edited_df.empty else ["All"]
+                        )
 
-                        # Display the interactive graph
-                        st.subheader("🌳 Interactive Family Tree Visualization")
-                        st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
+                    # Display the interactive graph
+                    st.subheader("🌳 Interactive Family Tree Visualization")
+                    st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
 
-                        components.html(graph_html, height=750, width=None, scrolling=False)
-                        st.session_state.update_viz = False
+                    # Use iframe approach for better rendering
+                    components.html(graph_html, height=750, scrolling=False)
+                    st.session_state.update_viz = False
 
-                    except Exception as e:
-                        st.error(f"Error generating visualization: {str(e)}")
+                except Exception as e:
+                    st.error(f"Error generating visualization: {str(e)}")
 # --- 6. Statistics Tab ---
 with tab3:
     st.subheader("📊 Family Tree Statistics & Analysis")
