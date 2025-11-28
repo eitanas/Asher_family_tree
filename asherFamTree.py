@@ -39,6 +39,170 @@ if os.path.exists(original_img_path):
 # Create tabs for better organization
 tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "ℹ️ Help"])
 
+# --- 1. Load and Transform Family Data from JSON ---
+def parse_lifespan(lifespan_str):
+    """Parse lifespan string like '1850-1914' or '1975-' into birth and death years"""
+    if not lifespan_str or lifespan_str == "?":
+        return None, None
+
+    lifespan_str = str(lifespan_str).strip()
+    match = re.match(r'(\d{4})\s*[-–]\s*(\d{4}|\?)?', lifespan_str)
+    if match:
+        birth = int(match.group(1)) if match.group(1) else None
+        death = int(match.group(2)) if match.group(2) and match.group(2) != '?' else None
+        return birth, death
+
+    match = re.match(r'(\d{4})', lifespan_str)
+    if match:
+        return int(match.group(1)), None
+
+    return None, None
+
+
+def infer_gender(name, spouse_info=None):
+    """Infer gender from name patterns or spouse description"""
+    male_patterns = [
+        'Yosef', 'Moshe', 'Haim', 'David', 'Itzchak', 'Jack', 'Jacques',
+        'Allen', 'Herbert', 'Alberto', 'Nathan', 'Samuel', 'Benjamin',
+        'Jacob', 'Abraham', 'Isaac', 'Aaron', 'Daniel', 'Michael', 'Robert',
+        'Ephraim', 'Elia', 'Eli', 'Alan', 'Leonard', 'Eddie', 'Alon', 'Eitan'
+    ]
+
+    female_patterns = [
+        'Rivka', 'Ester', 'Matilda', 'Sara', 'Rachel', 'Bella', 'Gloria',
+        'Wendy', 'Rebecca', 'Miriam', 'Hannah', 'Sarah', 'Ruth', 'Naomi',
+        'Esther', 'Leah', 'Deborah', 'Susan', 'Linda', 'Nancy', 'Elizabeth',
+        'Becki', 'Joyce', 'Marlene', 'Eram'
+    ]
+
+    name_lower = name.lower() if name else ""
+    if any(pattern.lower() in name_lower for pattern in male_patterns):
+        return "Male"
+    if any(pattern.lower() in name_lower for pattern in female_patterns):
+        return "Female"
+
+    spouse_text = str(spouse_info).lower() if spouse_info else ""
+    if "wife" in spouse_text:
+        return "Male"
+    if "husband" in spouse_text:
+        return "Female"
+
+    return "Unknown"
+
+
+def load_family_data_from_json():
+    """Load and transform family data from JSON file"""
+    json_path = "family_data.json"
+    if not os.path.exists(json_path):
+        st.warning(f"JSON file not found at: {os.path.abspath(json_path)}")
+        return create_sample_data()
+
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+            content = re.sub(r'//.*?\n', '\n', content)
+            content = re.sub(r'/\*.*?\*/', '', content, flags=re.DOTALL)
+            json_data = json.loads(content)
+
+        id_to_name = {person['id']: person['name'] for person in json_data}
+        transformed = []
+        for person in json_data:
+            birth, death = parse_lifespan(person.get('lifespan', ''))
+            parent_name = id_to_name.get(person.get('parent_id')) if person.get('parent_id') else None
+            spouse = person.get('spouse')
+            gender = infer_gender(person.get('name', ''), spouse)
+            transformed.append({
+                "Name": person.get('name'),
+                "Parent": parent_name,
+                "Birth": birth,
+                "Death": death,
+                "Location": person.get('location', 'Unknown'),
+                "Gender": gender,
+                "Spouse": spouse,
+                "Occupation": person.get('occupation'),
+                "Photo": person.get('photo'),
+                "Generation": person.get('generation', 1),
+                "Highlight": person.get('highlighted', False),
+                "Notes": person.get('note', '')
+            })
+
+        return transformed
+
+    except Exception as e:
+        st.error(f"Error loading JSON file: {str(e)}")
+        return create_sample_data()
+
+
+def create_sample_data():
+    """Create sample data if JSON file is not available"""
+    return [
+        {
+            "Name": "Yosef Acher",
+            "Parent": None,
+            "Birth": 1775,
+            "Death": None,
+            "Location": "Unknown",
+            "Gender": "Male",
+            "Spouse": None,
+            "Occupation": None,
+            "Photo": None,
+            "Generation": 1,
+            "Highlight": False,
+            "Notes": "Patriarch of the Acher family"
+        }
+    ]
+
+
+def validate_dates(df):
+    """Validate date consistency in family tree"""
+    errors = []
+    for _, row in df.iterrows():
+        if pd.notna(row.get('Birth')) and pd.notna(row.get('Death')):
+            if row['Death'] < row['Birth']:
+                errors.append(f"❌ {row['Name']}: Death year ({row['Death']}) precedes birth year ({row['Birth']})")
+
+        if pd.notna(row.get('Parent')) and pd.notna(row.get('Birth')):
+            parent_rows = df[df['Name'] == row['Parent']]
+            if not parent_rows.empty:
+                parent_birth = parent_rows.iloc[0].get('Birth')
+                if pd.notna(parent_birth) and row['Birth'] < parent_birth + 15:
+                    errors.append(f"⚠️ {row['Name']}: Born when parent was under 15 years old")
+    return errors
+
+
+def calculate_generation(df):
+    """Automatically calculate generation levels"""
+    generation_map = {}
+    roots = df[df['Parent'].isna() | (df['Parent'] == '')]['Name'].tolist()
+    for root in roots:
+        generation_map[root] = 1
+
+    changed = True
+    while changed:
+        changed = False
+        for _, row in df.iterrows():
+            parent = row.get('Parent')
+            name = row.get('Name')
+            if name not in generation_map and parent in generation_map:
+                generation_map[name] = generation_map[parent] + 1
+                changed = True
+    return generation_map
+
+
+# Load initial data and seed session state
+initial_data = load_family_data_from_json()
+if 'df' not in st.session_state:
+    st.session_state.df = pd.DataFrame(initial_data)
+if 'first_run' not in st.session_state:
+    st.session_state.first_run = True
+if 'update_viz' not in st.session_state:
+    st.session_state.update_viz = True
+
+st.sidebar.markdown("---")
+if st.sidebar.button("🔄 Reload Original Data"):
+    st.session_state.df = pd.DataFrame(load_family_data_from_json())
+    st.rerun()
+
 with tab1:
     col1, col2 = st.columns([3, 1])
 
@@ -112,7 +276,7 @@ with tab1:
                     edited_df.at[idx, 'Generation'] = gen_map[row['Name']]
             st.session_state.df = edited_df
             st.rerun()
-
+        
     with col2:
         st.subheader("🔍 Data Validation")
 
@@ -418,8 +582,19 @@ def generate_graph(dataframe):
         }
         """)
 
-    # Return HTML string for embedding
-    return net.generate_html()
+    # Save to temporary file and return HTML
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
+        tmp_path = tmp_file.name
+        net.save_graph(tmp_path)
+
+    # Read the HTML back
+    with open(tmp_path, 'r', encoding='utf-8') as f:
+        html_content = f.read()
+
+    # Clean up temp file
+    os.unlink(tmp_path)
+
+    return html_content
 
 # --- 5. Render the Graph in Tab 2 ---
 with tab2:
@@ -427,40 +602,38 @@ with tab2:
     with col2:
         if st.button("🔄 Generate/Update Family Tree Visualization", type="primary", use_container_width=True):
             st.session_state.update_viz = True
-    
-    if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
-        st.session_state.first_run = False
 
-        if edited_df.empty:
-            st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
-        else:
-            with st.spinner("🔄 Generating family tree visualization..."):
-                try:
-                    graph_html = generate_graph(edited_df)
+        if st.session_state.get('update_viz', False) or st.session_state.get('first_run', True):
+            st.session_state.first_run = False
 
-                    # Add search functionality
-                    st.subheader("🔍 Search Family Members")
-                    search_col1, search_col2 = st.columns(2)
-                    with search_col1:
-                        search_term = st.text_input("Search by name:", placeholder="Enter name...")
-                    with search_col2:
-                        search_gen = st.selectbox(
-                            "Filter by generation:",
-                            ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
-                            if not edited_df.empty else ["All"]
-                        )
+            if edited_df.empty:
+                st.warning("⚠️ No data available. Please add family members in the Data Entry tab.")
+            else:
+                with st.spinner("🔄 Generating family tree visualization..."):
+                    try:
+                        graph_html = generate_graph(edited_df)
 
-                    # Display the interactive graph
-                    st.subheader("🌳 Interactive Family Tree Visualization")
-                    st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
+                        # Add search functionality
+                        st.subheader("🔍 Search Family Members")
+                        search_col1, search_col2 = st.columns(2)
+                        with search_col1:
+                            search_term = st.text_input("Search by name:", placeholder="Enter name...")
+                        with search_col2:
+                            search_gen = st.selectbox(
+                                "Filter by generation:",
+                                ["All"] + list(range(1, int(edited_df['Generation'].max()) + 1))
+                                if not edited_df.empty else ["All"]
+                            )
 
-                    components.html(graph_html, height=750, scrolling=True)
-                    st.session_state.update_viz = False
+                        # Display the interactive graph
+                        st.subheader("🌳 Interactive Family Tree Visualization")
+                        st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
 
-                except Exception as e:
-                    st.error(f"Error generating visualization: {str(e)}")
+                        components.html(graph_html, height=750, width=None, scrolling=False)
+                        st.session_state.update_viz = False
 
-
+                    except Exception as e:
+                        st.error(f"Error generating visualization: {str(e)}")
 # --- 6. Statistics Tab ---
 with tab3:
     st.subheader("📊 Family Tree Statistics & Analysis")
