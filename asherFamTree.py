@@ -466,6 +466,9 @@ def generate_graph_html(dataframe):
         # Get generation for Y positioning
         gen = int(row.get('Generation', 1)) if pd.notna(row.get('Generation')) else 1
 
+        # Get spouse info
+        spouse = str(row.get('Spouse', '')).strip() if pd.notna(row.get('Spouse')) else ""
+
         node = {
             "id": node_name,
             "name": node_name,
@@ -474,7 +477,8 @@ def generate_graph_html(dataframe):
             "color": color,
             "size": size,
             "gender": row.get('Gender', 'Unknown'),
-            "generation": gen
+            "generation": gen,
+            "spouse": spouse
         }
         nodes.append(node)
 
@@ -508,6 +512,7 @@ def generate_graph_html(dataframe):
         .node ellipse {{ stroke: #333; stroke-width: 2px; }}
         .node rect {{ stroke: #333; stroke-width: 2px; }}
         .node text {{ font-family: Arial, sans-serif; font-size: {text_size}px; fill: #000000; font-weight: bold; pointer-events: none; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }}
+        .node .spouse-text {{ font-size: {max(10, text_size - 4)}px; fill: #C41E3A; font-style: italic; font-weight: normal; }}
         .link {{ fill: none; stroke: {edge_color}; stroke-width: 2px; }}
         .tooltip {{ position: absolute; background: rgba(0,0,0,0.9); color: white; padding: 10px 14px; border-radius: 6px; font-size: 14px; pointer-events: none; white-space: pre-line; max-width: 300px; z-index: 1000; }}
     </style>
@@ -591,21 +596,22 @@ def generate_graph_html(dataframe):
                 .on("drag", dragged)
                 .on("end", dragended));
 
-        // Add shapes based on gender - larger sizes
+        // Add shapes based on gender - larger sizes to fit spouse text
         node.each(function(d) {{
             const el = d3.select(this);
             const baseSize = d.size + 10;
+            const hasSpouse = d.spouse ? 8 : 0;  // Extra height for spouse
             if (d.gender === "Female") {{
                 el.append("ellipse")
-                    .attr("rx", baseSize + 20)
-                    .attr("ry", baseSize + 5)
+                    .attr("rx", baseSize + 25)
+                    .attr("ry", baseSize + 8 + hasSpouse)
                     .attr("fill", d.color);
             }} else {{
                 el.append("rect")
-                    .attr("x", -(baseSize + 15))
-                    .attr("y", -(baseSize))
-                    .attr("width", (baseSize + 15) * 2)
-                    .attr("height", (baseSize) * 2)
+                    .attr("x", -(baseSize + 20))
+                    .attr("y", -(baseSize + hasSpouse))
+                    .attr("width", (baseSize + 20) * 2)
+                    .attr("height", (baseSize + hasSpouse) * 2)
                     .attr("rx", 5)
                     .attr("fill", d.color);
             }}
@@ -616,12 +622,21 @@ def generate_graph_html(dataframe):
         const lineHeight = textSize + 4;
         node.each(function(d) {{
             const el = d3.select(this);
+            const totalLines = d.label.length + (d.spouse ? 1 : 0);
             d.label.forEach((line, i) => {{
                 el.append("text")
-                    .attr("dy", (i - d.label.length/2 + 0.5) * lineHeight)
+                    .attr("dy", (i - totalLines/2 + 0.5) * lineHeight)
                     .attr("text-anchor", "middle")
                     .text(line);
             }});
+            // Add spouse line if present
+            if (d.spouse) {{
+                el.append("text")
+                    .attr("class", "spouse-text")
+                    .attr("dy", (d.label.length - totalLines/2 + 0.5) * lineHeight)
+                    .attr("text-anchor", "middle")
+                    .text("× " + d.spouse);
+            }}
         }});
 
         // Tooltip events
