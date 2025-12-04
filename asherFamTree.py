@@ -1,9 +1,6 @@
 import streamlit as st
 import pandas as pd
-from pyvis.network import Network
-import networkx as nx
 import streamlit.components.v1 as components
-import tempfile
 from datetime import datetime
 import json
 import re
@@ -388,207 +385,235 @@ def get_node_color(row, color_by, highlight_color="#E8B04B", default_color="#8FA
     else:  # Highlight
         return highlight_color if row.get('Highlight', False) else default_color
 
-def generate_graph(dataframe):
-    """Generate the interactive family tree visualization"""
-    # Initialize PyVis with professional styling
+def generate_graph_html(dataframe):
+    """Generate the interactive family tree visualization using pure JavaScript vis.js"""
     # Determine font color based on background brightness
     bg_brightness = int(bg_color[1:3], 16) + int(bg_color[3:5], 16) + int(bg_color[5:7], 16)
-    font_color = "#2C3E50" if bg_brightness > 384 else "#ECEFF1"  # Dark text on light bg, light text on dark bg
-    
-    net = Network(height="700px", width="100%", bgcolor=bg_color, font_color=font_color, cdn_resources="in_line")
-    
+    font_color = "#2C3E50" if bg_brightness > 384 else "#ECEFF1"
+    border_color = "#4A5568" if bg_brightness > 384 else "#CBD5E0"
+
     # Calculate descendants for sizing if needed
     descendants_count = {}
     if node_size_by_descendants:
         for _, row in dataframe.iterrows():
             descendants_count[row['Name']] = count_descendants(dataframe, row['Name'])
-    
-    # Add nodes
+
+    # Build nodes array
+    nodes = []
     for _, row in dataframe.iterrows():
         node_name = str(row['Name']).strip() if pd.notna(row['Name']) else ""
         if not node_name:
             continue
-            
+
         # Create detailed tooltip
         birth = f"{int(row['Birth'])}" if pd.notna(row['Birth']) else "?"
         death = f"{int(row['Death'])}" if pd.notna(row['Death']) else "Living"
         age = f" (Age: {int(row['Death']) - int(row['Birth'])})" if pd.notna(row['Birth']) and pd.notna(row['Death']) else ""
-        
+
         tooltip_parts = [f"<b>{node_name}</b>"]
-        
         if pd.notna(row.get('Gender')):
             tooltip_parts.append(f"Gender: {row['Gender']}")
-        
         tooltip_parts.append(f"Born: {birth}")
         tooltip_parts.append(f"Died: {death}{age}")
-        
         if pd.notna(row.get('Location')):
             tooltip_parts.append(f"Location: {row['Location']}")
-        
         if pd.notna(row.get('Occupation')):
             tooltip_parts.append(f"Occupation: {row['Occupation']}")
-        
         if pd.notna(row.get('Spouse')):
             tooltip_parts.append(f"Spouse: {row['Spouse']}")
-        
         if show_generation and pd.notna(row.get('Generation')):
             tooltip_parts.append(f"Generation: {int(row['Generation'])}")
-        
         if pd.notna(row.get('Notes')):
             tooltip_parts.append(f"Notes: {row['Notes']}")
-        
         if node_size_by_descendants:
             desc_count = descendants_count.get(node_name, 0)
             if desc_count > 0:
                 tooltip_parts.append(f"Descendants: {desc_count}")
-        
+
         title_html = "<br>".join(tooltip_parts)
-        
+
         # Create label
         label_parts = [node_name]
         if show_lifespan:
-            lifespan = f"({birth}-{death})"
-            label_parts.append(lifespan)
+            label_parts.append(f"({birth}-{death})")
         if show_generation and pd.notna(row.get('Generation')):
             label_parts.append(f"Gen {int(row['Generation'])}")
-        
-        label = "\n".join(label_parts)
-        
+        label = "\\n".join(label_parts)
+
         # Determine node size
         if node_size_by_descendants:
             size = 20 + min(descendants_count.get(node_name, 0) * 3, 60)
         else:
             size = 25
-        
-        # Get node color (pass custom colors if using highlight mode)
+
+        # Get node color
         if color_by == "Highlight" and 'highlight_color' in globals() and 'default_color' in globals():
             color = get_node_color(row, color_by, highlight_color, default_color)
         else:
             color = get_node_color(row, color_by)
-        
-        # Add node with gender-specific shape and professional styling
+
+        # Determine shape based on gender
         shape = "box"
         if row.get('Gender') == 'Male':
-            shape = "square"
+            shape = "box"
         elif row.get('Gender') == 'Female':
             shape = "ellipse"
-        
+
         # Check for photo
         image_url = row.get('Photo')
         if pd.notna(image_url) and str(image_url).startswith('http'):
             shape = "circularImage"
-            
-        # Add subtle border color for depth
-        border_color = "#4A5568" if bg_brightness > 384 else "#CBD5E0"
-        
-        net.add_node(node_name, 
-                    label=label, 
-                    title=title_html, 
-                    color={
-                        "background": color,
-                        "border": border_color,
-                        "highlight": {
-                            "background": color,
-                            "border": "#2B6CB1"  # Blue border on selection
-                        }
-                    }, 
-                    shape=shape, 
-                    image=image_url if shape == "circularImage" else None,
-                    size=size, 
-                    borderWidth=2, 
-                    borderWidthSelected=3,
-                    font={"size": 12, "face": "Arial, sans-serif"})
-    
-    # Add edges
+
+        node = {
+            "id": node_name,
+            "label": label,
+            "title": title_html,
+            "color": {"background": color, "border": border_color, "highlight": {"background": color, "border": "#2B6CB1"}},
+            "shape": shape,
+            "size": size,
+            "borderWidth": 2,
+            "font": {"size": 12, "color": font_color, "face": "Arial, sans-serif"}
+        }
+        if shape == "circularImage":
+            node["image"] = str(image_url)
+        nodes.append(node)
+
+    # Build edges array
+    edges = []
+    added_spouse_edges = set()
+
     for _, row in dataframe.iterrows():
         node_name = str(row['Name']).strip() if pd.notna(row['Name']) else ""
         parent_name = str(row['Parent']).strip() if pd.notna(row['Parent']) else ""
-        
+
         if node_name and parent_name and parent_name.lower() not in ["none", ""]:
-            # Check if parent exists in the dataframe
             if parent_name in dataframe['Name'].values:
-                net.add_edge(parent_name, node_name, color=edge_color, width=2)
-    
-    # Add spouse relationships (dashed lines)
-    for _, row in dataframe.iterrows():
+                edges.append({
+                    "from": parent_name,
+                    "to": node_name,
+                    "color": edge_color,
+                    "width": 2
+                })
+
+        # Add spouse relationships
         if pd.notna(row.get('Spouse')):
             spouse_name = str(row['Spouse']).strip()
             if spouse_name in dataframe['Name'].values:
-                net.add_edge(row['Name'], spouse_name, color="#C9A961",  # Muted gold for marriage lines
-                           dashes=True, width=1, title="Spouse")
+                edge_key = tuple(sorted([node_name, spouse_name]))
+                if edge_key not in added_spouse_edges:
+                    edges.append({
+                        "from": node_name,
+                        "to": spouse_name,
+                        "color": "#C9A961",
+                        "dashes": True,
+                        "width": 1,
+                        "title": "Spouse"
+                    })
+                    added_spouse_edges.add(edge_key)
 
-    # Apply Layout Options
+    # Build layout options
     if layout_type == "Hierarchical (Tree)":
-        direction_map = {
-            "Top-Down": "UD", "Bottom-Up": "DU",
-            "Left-Right": "LR", "Right-Left": "RL"
-        }
+        direction_map = {"Top-Down": "UD", "Bottom-Up": "DU", "Left-Right": "LR", "Right-Left": "RL"}
         direction = direction_map.get(tree_direction, "UD")
-        
-        options = f"""
-        var options = {{
-          "layout": {{
-            "hierarchical": {{
-              "enabled": true,
-              "direction": "{direction}",
-              "sortMethod": "directed",
-              "nodeSpacing": {node_spacing},
-              "levelSeparation": 150,
-              "treeSpacing": 200
-            }}
-          }},
-          "physics": {{ "enabled": false }},
-          "interaction": {{
-            "dragNodes": true,
-            "dragView": true,
-            "zoomView": true,
-            "zoomSpeed": 0.5
-          }}
-        }}
-        """
-        net.set_options(options)
+        layout_options = f'''
+            layout: {{
+                hierarchical: {{
+                    enabled: true,
+                    direction: "{direction}",
+                    sortMethod: "directed",
+                    nodeSpacing: {node_spacing},
+                    levelSeparation: 150,
+                    treeSpacing: 200
+                }}
+            }},
+            physics: {{ enabled: false }}
+        '''
     elif layout_type == "Circular":
-        net.barnes_hut()
-        net.set_options("""
-        var options = {
-          "interaction": { "zoomSpeed": 0.5 }
-        }
-        """)
+        layout_options = '''
+            physics: {
+                barnesHut: {
+                    gravitationalConstant: -2000,
+                    centralGravity: 0.3,
+                    springLength: 95
+                }
+            }
+        '''
     elif layout_type == "Random":
-        net.set_options("""
-        var options = {
-          "layout": { "randomSeed": 2 },
-          "physics": { "enabled": true },
-          "interaction": { "zoomSpeed": 0.5 }
-        }
-        """)
+        layout_options = '''
+            layout: { randomSeed: 2 },
+            physics: { enabled: true }
+        '''
     else:  # Physics (Organic)
-        net.force_atlas_2based()
-        net.set_options("""
-        var options = {
-          "physics": {
-            "forceAtlas2Based": {
-              "gravitationalConstant": -50,
-              "centralGravity": 0.01,
-              "springLength": 100,
-              "springConstant": 0.08
-            },
-            "maxVelocity": 50,
-            "solver": "forceAtlas2Based",
-            "timestep": 0.35,
-            "stabilization": { "iterations": 150 }
-          },
-          "interaction": { "zoomSpeed": 0.5 }
-        }
-        """)
+        layout_options = '''
+            physics: {
+                forceAtlas2Based: {
+                    gravitationalConstant: -50,
+                    centralGravity: 0.01,
+                    springLength: 100,
+                    springConstant: 0.08
+                },
+                maxVelocity: 50,
+                solver: "forceAtlas2Based",
+                timestep: 0.35,
+                stabilization: { iterations: 150 }
+            }
+        '''
 
-    # Generate HTML and return content directly
-    tmp_path = tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8').name
-    net.save_graph(tmp_path)
-    with open(tmp_path, 'r', encoding='utf-8') as f:
-        html_content = f.read()
-    os.unlink(tmp_path)  # Clean up temp file
-    return html_content
+    # Generate the complete HTML
+    nodes_json = json.dumps(nodes)
+    edges_json = json.dumps(edges)
+
+    html = f'''
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }}
+            #mynetwork {{
+                width: 100%;
+                height: 700px;
+                background-color: {bg_color};
+                border: 1px solid #ddd;
+            }}
+        </style>
+    </head>
+    <body>
+        <div id="mynetwork"></div>
+        <script>
+            var nodes = new vis.DataSet({nodes_json});
+            var edges = new vis.DataSet({edges_json});
+            var container = document.getElementById("mynetwork");
+            var data = {{ nodes: nodes, edges: edges }};
+            var options = {{
+                {layout_options},
+                interaction: {{
+                    dragNodes: true,
+                    dragView: true,
+                    zoomView: true,
+                    zoomSpeed: 0.5
+                }},
+                nodes: {{
+                    borderWidth: 2,
+                    borderWidthSelected: 3
+                }},
+                edges: {{
+                    smooth: {{ type: "cubicBezier" }}
+                }}
+            }};
+            var network = new vis.Network(container, data, options);
+        </script>
+    </body>
+    </html>
+    '''
+    return html
 
 # --- 5. Render the Graph in Tab 2 ---
 with tab2:
@@ -607,7 +632,7 @@ with tab2:
         else:
             with st.spinner("🔄 Generating family tree visualization..."):
                 try:
-                    graph_html = generate_graph(edited_df)
+                    graph_html = generate_graph_html(edited_df)
 
                     # Add search functionality
                     st.subheader("🔍 Search Family Members")
