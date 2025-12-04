@@ -318,6 +318,7 @@ st.sidebar.subheader("Display Options")
 show_lifespan = st.sidebar.checkbox("Show Lifespan in Labels", value=True)
 show_generation = st.sidebar.checkbox("Show Generation Number", value=True)
 node_size_by_descendants = st.sidebar.checkbox("Size nodes by number of descendants", value=False)
+text_size = st.sidebar.slider("Text Size", 10, 28, 16, step=2)
 
 # --- 4. Enhanced Graph Generation Logic ---
 def count_descendants(df, person_name):
@@ -489,7 +490,7 @@ def generate_graph_html(dataframe):
         .node {{ cursor: pointer; }}
         .node ellipse {{ stroke: #333; stroke-width: 2px; }}
         .node rect {{ stroke: #333; stroke-width: 2px; }}
-        .node text {{ font-family: Arial, sans-serif; font-size: 14px; fill: #000000; font-weight: bold; pointer-events: none; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }}
+        .node text {{ font-family: Arial, sans-serif; font-size: {text_size}px; fill: #000000; font-weight: bold; pointer-events: none; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }}
         .link {{ fill: none; stroke: {edge_color}; stroke-width: 2px; }}
         .tooltip {{ position: absolute; background: rgba(0,0,0,0.9); color: white; padding: 10px 14px; border-radius: 6px; font-size: 14px; pointer-events: none; white-space: pre-line; max-width: 300px; z-index: 1000; }}
     </style>
@@ -593,12 +594,14 @@ def generate_graph_html(dataframe):
             }}
         }});
 
-        // Add labels - larger text with better spacing
+        // Add labels - text size controlled by slider
+        const textSize = {text_size};
+        const lineHeight = textSize + 4;
         node.each(function(d) {{
             const el = d3.select(this);
             d.label.forEach((line, i) => {{
                 el.append("text")
-                    .attr("dy", (i - d.label.length/2 + 0.5) * 16)
+                    .attr("dy", (i - d.label.length/2 + 0.5) * lineHeight)
                     .attr("text-anchor", "middle")
                     .text(line);
             }});
