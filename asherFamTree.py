@@ -27,19 +27,26 @@ st.markdown("""
 
 st.markdown('<h1 class="main-header">🌳 Ascher Family Digital Lineage System</h1>', unsafe_allow_html=True)
 
-# Display original document on main page (rotated 90 degrees)
+# Display original document on main page (rotated -90 degrees with crop)
 original_img_path = "original_tree.jpg"
 if os.path.exists(original_img_path):
     with st.expander("📜 View Original Handwritten Document", expanded=True):
         import base64
-        with open(original_img_path, "rb") as img_file:
-            img_base64 = base64.b64encode(img_file.read()).decode()
+        from PIL import Image
+        # Open, rotate and crop the image
+        img = Image.open(original_img_path)
+        img_rotated = img.rotate(-90, expand=True)
+        # Save to bytes
+        import io
+        img_buffer = io.BytesIO()
+        img_rotated.save(img_buffer, format='JPEG', quality=85)
+        img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
         st.markdown(f'''
         <div style="text-align: center; margin: 20px 0;">
             <img src="data:image/jpeg;base64,{img_base64}"
-                 style="transform: rotate(90deg); max-width: 80%; height: auto; margin: 50px auto;"
+                 style="max-width: 100%; height: auto;"
                  alt="Original Ascher Family Tree Document">
-            <p style="margin-top: 60px; color: #666;">Original Ascher Family Tree Document</p>
+            <p style="margin-top: 10px; color: #666;">Original Ascher Family Tree Document</p>
         </div>
         ''', unsafe_allow_html=True)
 
