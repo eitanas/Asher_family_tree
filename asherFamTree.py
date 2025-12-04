@@ -386,11 +386,10 @@ def get_node_color(row, color_by, highlight_color="#E8B04B", default_color="#8FA
         return highlight_color if row.get('Highlight', False) else default_color
 
 def generate_graph_html(dataframe):
-    """Generate the interactive family tree visualization using pure JavaScript vis.js"""
+    """Generate the interactive family tree visualization using D3.js"""
     # Determine font color based on background brightness
     bg_brightness = int(bg_color[1:3], 16) + int(bg_color[3:5], 16) + int(bg_color[5:7], 16)
     font_color = "#2C3E50" if bg_brightness > 384 else "#ECEFF1"
-    border_color = "#4A5568" if bg_brightness > 384 else "#CBD5E0"
 
     # Calculate descendants for sizing if needed
     descendants_count = {}
@@ -400,37 +399,32 @@ def generate_graph_html(dataframe):
 
     # Build nodes array
     nodes = []
-    for _, row in dataframe.iterrows():
+    node_ids = {}
+    for idx, row in dataframe.iterrows():
         node_name = str(row['Name']).strip() if pd.notna(row['Name']) else ""
         if not node_name:
             continue
+
+        node_ids[node_name] = len(nodes)
 
         # Create detailed tooltip
         birth = f"{int(row['Birth'])}" if pd.notna(row['Birth']) else "?"
         death = f"{int(row['Death'])}" if pd.notna(row['Death']) else "Living"
         age = f" (Age: {int(row['Death']) - int(row['Birth'])})" if pd.notna(row['Birth']) and pd.notna(row['Death']) else ""
 
-        tooltip_parts = [f"<b>{node_name}</b>"]
+        tooltip_parts = [node_name]
         if pd.notna(row.get('Gender')):
             tooltip_parts.append(f"Gender: {row['Gender']}")
         tooltip_parts.append(f"Born: {birth}")
         tooltip_parts.append(f"Died: {death}{age}")
         if pd.notna(row.get('Location')):
             tooltip_parts.append(f"Location: {row['Location']}")
-        if pd.notna(row.get('Occupation')):
-            tooltip_parts.append(f"Occupation: {row['Occupation']}")
         if pd.notna(row.get('Spouse')):
             tooltip_parts.append(f"Spouse: {row['Spouse']}")
         if show_generation and pd.notna(row.get('Generation')):
             tooltip_parts.append(f"Generation: {int(row['Generation'])}")
-        if pd.notna(row.get('Notes')):
-            tooltip_parts.append(f"Notes: {row['Notes']}")
-        if node_size_by_descendants:
-            desc_count = descendants_count.get(node_name, 0)
-            if desc_count > 0:
-                tooltip_parts.append(f"Descendants: {desc_count}")
 
-        title_html = "<br>".join(tooltip_parts)
+        tooltip = "\\n".join(tooltip_parts)
 
         # Create label
         label_parts = [node_name]
@@ -438,13 +432,12 @@ def generate_graph_html(dataframe):
             label_parts.append(f"({birth}-{death})")
         if show_generation and pd.notna(row.get('Generation')):
             label_parts.append(f"Gen {int(row['Generation'])}")
-        label = "\\n".join(label_parts)
 
         # Determine node size
         if node_size_by_descendants:
-            size = 20 + min(descendants_count.get(node_name, 0) * 3, 60)
+            size = 8 + min(descendants_count.get(node_name, 0) * 2, 30)
         else:
-            size = 25
+            size = 12
 
         # Get node color
         if color_by == "Highlight" and 'highlight_color' in globals() and 'default_color' in globals():
@@ -452,167 +445,197 @@ def generate_graph_html(dataframe):
         else:
             color = get_node_color(row, color_by)
 
-        # Determine shape based on gender
-        shape = "box"
-        if row.get('Gender') == 'Male':
-            shape = "box"
-        elif row.get('Gender') == 'Female':
-            shape = "ellipse"
-
-        # Check for photo
-        image_url = row.get('Photo')
-        if pd.notna(image_url) and str(image_url).startswith('http'):
-            shape = "circularImage"
+        # Get generation for Y positioning
+        gen = int(row.get('Generation', 1)) if pd.notna(row.get('Generation')) else 1
 
         node = {
             "id": node_name,
-            "label": label,
-            "title": title_html,
-            "color": {"background": color, "border": border_color, "highlight": {"background": color, "border": "#2B6CB1"}},
-            "shape": shape,
+            "name": node_name,
+            "label": label_parts,
+            "tooltip": tooltip,
+            "color": color,
             "size": size,
-            "borderWidth": 2,
-            "font": {"size": 12, "color": font_color, "face": "Arial, sans-serif"}
+            "gender": row.get('Gender', 'Unknown'),
+            "generation": gen
         }
-        if shape == "circularImage":
-            node["image"] = str(image_url)
         nodes.append(node)
 
-    # Build edges array
-    edges = []
-    added_spouse_edges = set()
-
+    # Build links array
+    links = []
     for _, row in dataframe.iterrows():
         node_name = str(row['Name']).strip() if pd.notna(row['Name']) else ""
         parent_name = str(row['Parent']).strip() if pd.notna(row['Parent']) else ""
 
-        if node_name and parent_name and parent_name.lower() not in ["none", ""]:
-            if parent_name in dataframe['Name'].values:
-                edges.append({
-                    "from": parent_name,
-                    "to": node_name,
-                    "color": edge_color,
-                    "width": 2
-                })
+        if node_name and parent_name and parent_name.lower() not in ["none", ""] and node_name in node_ids and parent_name in node_ids:
+            links.append({
+                "source": parent_name,
+                "target": node_name,
+                "type": "parent"
+            })
 
-        # Add spouse relationships
-        if pd.notna(row.get('Spouse')):
-            spouse_name = str(row['Spouse']).strip()
-            if spouse_name in dataframe['Name'].values:
-                edge_key = tuple(sorted([node_name, spouse_name]))
-                if edge_key not in added_spouse_edges:
-                    edges.append({
-                        "from": node_name,
-                        "to": spouse_name,
-                        "color": "#C9A961",
-                        "dashes": True,
-                        "width": 1,
-                        "title": "Spouse"
-                    })
-                    added_spouse_edges.add(edge_key)
-
-    # Build layout options
-    if layout_type == "Hierarchical (Tree)":
-        direction_map = {"Top-Down": "UD", "Bottom-Up": "DU", "Left-Right": "LR", "Right-Left": "RL"}
-        direction = direction_map.get(tree_direction, "UD")
-        layout_options = f'''
-            layout: {{
-                hierarchical: {{
-                    enabled: true,
-                    direction: "{direction}",
-                    sortMethod: "directed",
-                    nodeSpacing: {node_spacing},
-                    levelSeparation: 150,
-                    treeSpacing: 200
-                }}
-            }},
-            physics: {{ enabled: false }}
-        '''
-    elif layout_type == "Circular":
-        layout_options = '''
-            physics: {
-                barnesHut: {
-                    gravitationalConstant: -2000,
-                    centralGravity: 0.3,
-                    springLength: 95
-                }
-            }
-        '''
-    elif layout_type == "Random":
-        layout_options = '''
-            layout: { randomSeed: 2 },
-            physics: { enabled: true }
-        '''
-    else:  # Physics (Organic)
-        layout_options = '''
-            physics: {
-                forceAtlas2Based: {
-                    gravitationalConstant: -50,
-                    centralGravity: 0.01,
-                    springLength: 100,
-                    springConstant: 0.08
-                },
-                maxVelocity: 50,
-                solver: "forceAtlas2Based",
-                timestep: 0.35,
-                stabilization: { iterations: 150 }
-            }
-        '''
-
-    # Generate the complete HTML
+    # Generate the complete HTML with D3.js
     nodes_json = json.dumps(nodes)
-    edges_json = json.dumps(edges)
+    links_json = json.dumps(links)
 
-    html = f'''
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
-        <style>
-            html, body {{
-                margin: 0;
-                padding: 0;
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
+    html = f'''<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        html, body {{ width: 100%; height: 100%; overflow: hidden; }}
+        svg {{ width: 100%; height: 100%; background-color: {bg_color}; display: block; }}
+        .node {{ cursor: pointer; }}
+        .node circle {{ stroke: #4A5568; stroke-width: 2px; }}
+        .node rect {{ stroke: #4A5568; stroke-width: 2px; }}
+        .node text {{ font-family: Arial, sans-serif; font-size: 10px; fill: {font_color}; pointer-events: none; }}
+        .link {{ fill: none; stroke: {edge_color}; stroke-width: 2px; }}
+        .tooltip {{ position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; pointer-events: none; white-space: pre-line; max-width: 250px; }}
+    </style>
+</head>
+<body>
+    <svg id="tree"></svg>
+    <script>
+        const nodes = {nodes_json};
+        const links = {links_json};
+
+        const width = window.innerWidth || 900;
+        const height = 700;
+
+        const svg = d3.select("#tree")
+            .attr("viewBox", [0, 0, width, height]);
+
+        // Create container for zoom
+        const g = svg.append("g");
+
+        // Add zoom behavior
+        const zoom = d3.zoom()
+            .scaleExtent([0.1, 4])
+            .on("zoom", (event) => g.attr("transform", event.transform));
+        svg.call(zoom);
+
+        // Create tooltip
+        const tooltip = d3.select("body").append("div")
+            .attr("class", "tooltip")
+            .style("opacity", 0);
+
+        // Calculate positions based on generation (hierarchical layout)
+        const generations = {{}};
+        nodes.forEach(n => {{
+            if (!generations[n.generation]) generations[n.generation] = [];
+            generations[n.generation].push(n);
+        }});
+
+        const levelHeight = 120;
+        const startY = 60;
+
+        Object.keys(generations).sort((a,b) => a-b).forEach(gen => {{
+            const genNodes = generations[gen];
+            const levelWidth = width - 100;
+            const spacing = levelWidth / (genNodes.length + 1);
+            genNodes.forEach((n, i) => {{
+                n.x = spacing * (i + 1) + 50;
+                n.y = startY + (gen - 1) * levelHeight;
+            }});
+        }});
+
+        // Create node map for links
+        const nodeMap = {{}};
+        nodes.forEach(n => nodeMap[n.id] = n);
+
+        // Draw links
+        const link = g.append("g")
+            .selectAll("path")
+            .data(links)
+            .join("path")
+            .attr("class", "link")
+            .attr("d", d => {{
+                const source = nodeMap[d.source];
+                const target = nodeMap[d.target];
+                if (!source || !target) return "";
+                const midY = (source.y + target.y) / 2;
+                return `M${{source.x}},${{source.y + 20}} C${{source.x}},${{midY}} ${{target.x}},${{midY}} ${{target.x}},${{target.y - 20}}`;
+            }});
+
+        // Draw nodes
+        const node = g.append("g")
+            .selectAll("g")
+            .data(nodes)
+            .join("g")
+            .attr("class", "node")
+            .attr("transform", d => `translate(${{d.x}},${{d.y}})`)
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        // Add shapes based on gender
+        node.each(function(d) {{
+            const el = d3.select(this);
+            if (d.gender === "Female") {{
+                el.append("ellipse")
+                    .attr("rx", d.size + 8)
+                    .attr("ry", d.size)
+                    .attr("fill", d.color);
+            }} else {{
+                el.append("rect")
+                    .attr("x", -(d.size + 5))
+                    .attr("y", -d.size)
+                    .attr("width", (d.size + 5) * 2)
+                    .attr("height", d.size * 2)
+                    .attr("rx", 3)
+                    .attr("fill", d.color);
             }}
-            #mynetwork {{
-                width: 100%;
-                height: 700px;
-                background-color: {bg_color};
-                border: 1px solid #ddd;
-            }}
-        </style>
-    </head>
-    <body>
-        <div id="mynetwork"></div>
-        <script>
-            var nodes = new vis.DataSet({nodes_json});
-            var edges = new vis.DataSet({edges_json});
-            var container = document.getElementById("mynetwork");
-            var data = {{ nodes: nodes, edges: edges }};
-            var options = {{
-                {layout_options},
-                interaction: {{
-                    dragNodes: true,
-                    dragView: true,
-                    zoomView: true,
-                    zoomSpeed: 0.5
-                }},
-                nodes: {{
-                    borderWidth: 2,
-                    borderWidthSelected: 3
-                }},
-                edges: {{
-                    smooth: {{ type: "cubicBezier" }}
-                }}
-            }};
-            var network = new vis.Network(container, data, options);
-        </script>
-    </body>
-    </html>
-    '''
+        }});
+
+        // Add labels
+        node.each(function(d) {{
+            const el = d3.select(this);
+            d.label.forEach((line, i) => {{
+                el.append("text")
+                    .attr("dy", (i - d.label.length/2 + 0.5) * 12)
+                    .attr("text-anchor", "middle")
+                    .text(line);
+            }});
+        }});
+
+        // Tooltip events
+        node.on("mouseover", (event, d) => {{
+            tooltip.transition().duration(200).style("opacity", 1);
+            tooltip.html(d.tooltip)
+                .style("left", (event.pageX + 10) + "px")
+                .style("top", (event.pageY - 10) + "px");
+        }})
+        .on("mouseout", () => {{
+            tooltip.transition().duration(500).style("opacity", 0);
+        }});
+
+        // Drag functions
+        function dragstarted(event, d) {{
+            d3.select(this).raise();
+        }}
+
+        function dragged(event, d) {{
+            d.x = event.x;
+            d.y = event.y;
+            d3.select(this).attr("transform", `translate(${{d.x}},${{d.y}})`);
+            link.attr("d", l => {{
+                const source = nodeMap[l.source];
+                const target = nodeMap[l.target];
+                if (!source || !target) return "";
+                const midY = (source.y + target.y) / 2;
+                return `M${{source.x}},${{source.y + 20}} C${{source.x}},${{midY}} ${{target.x}},${{midY}} ${{target.x}},${{target.y - 20}}`;
+            }});
+        }}
+
+        function dragended(event, d) {{}}
+
+        // Center the view
+        svg.call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(0.9));
+    </script>
+</body>
+</html>'''
     return html
 
 # --- 5. Render the Graph in Tab 2 ---
