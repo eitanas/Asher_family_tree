@@ -582,18 +582,12 @@ def generate_graph(dataframe):
         }
         """)
 
-    # Save to temporary file and return HTML
-    with tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8') as tmp_file:
-        tmp_path = tmp_file.name
-        net.save_graph(tmp_path)
-
-    # Read the HTML back
+    # Generate HTML and return content directly
+    tmp_path = tempfile.NamedTemporaryFile(delete=False, suffix='.html', mode='w', encoding='utf-8').name
+    net.save_graph(tmp_path)
     with open(tmp_path, 'r', encoding='utf-8') as f:
         html_content = f.read()
-
-    # Clean up temp file
-    os.unlink(tmp_path)
-
+    os.unlink(tmp_path)  # Clean up temp file
     return html_content
 
 # --- 5. Render the Graph in Tab 2 ---
@@ -631,7 +625,7 @@ with tab2:
                     st.subheader("🌳 Interactive Family Tree Visualization")
                     st.info("💡 **Tip:** Drag nodes to rearrange, scroll to zoom, click and drag background to pan")
 
-                    # Use iframe approach for better rendering
+                    # Render the HTML content
                     components.html(graph_html, height=750, scrolling=False)
                     st.session_state.update_viz = False
 
