@@ -487,11 +487,11 @@ def generate_graph_html(dataframe):
         html, body {{ width: 100%; height: 100%; overflow: hidden; }}
         svg {{ width: 100%; height: 100%; background-color: {bg_color}; display: block; }}
         .node {{ cursor: pointer; }}
-        .node circle {{ stroke: #4A5568; stroke-width: 2px; }}
-        .node rect {{ stroke: #4A5568; stroke-width: 2px; }}
-        .node text {{ font-family: Arial, sans-serif; font-size: 10px; fill: {font_color}; pointer-events: none; }}
+        .node ellipse {{ stroke: #333; stroke-width: 2px; }}
+        .node rect {{ stroke: #333; stroke-width: 2px; }}
+        .node text {{ font-family: Arial, sans-serif; font-size: 14px; fill: #000000; font-weight: bold; pointer-events: none; text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; }}
         .link {{ fill: none; stroke: {edge_color}; stroke-width: 2px; }}
-        .tooltip {{ position: absolute; background: rgba(0,0,0,0.8); color: white; padding: 8px 12px; border-radius: 4px; font-size: 12px; pointer-events: none; white-space: pre-line; max-width: 250px; }}
+        .tooltip {{ position: absolute; background: rgba(0,0,0,0.9); color: white; padding: 10px 14px; border-radius: 6px; font-size: 14px; pointer-events: none; white-space: pre-line; max-width: 300px; z-index: 1000; }}
     </style>
 </head>
 <body>
@@ -500,11 +500,21 @@ def generate_graph_html(dataframe):
         const nodes = {nodes_json};
         const links = {links_json};
 
-        const width = window.innerWidth || 900;
-        const height = 700;
+        // Calculate dynamic width based on largest generation
+        const generations = {{}};
+        nodes.forEach(n => {{
+            if (!generations[n.generation]) generations[n.generation] = [];
+            generations[n.generation].push(n);
+        }});
+
+        // Find max nodes in any generation for width calculation
+        const maxNodesInGen = Math.max(...Object.values(generations).map(g => g.length));
+        const nodeWidth = 180; // Minimum width per node
+        const dynamicWidth = Math.max(1200, maxNodesInGen * nodeWidth);
+        const height = 800;
 
         const svg = d3.select("#tree")
-            .attr("viewBox", [0, 0, width, height]);
+            .attr("viewBox", [0, 0, dynamicWidth, height]);
 
         // Create container for zoom
         const g = svg.append("g");
@@ -520,22 +530,15 @@ def generate_graph_html(dataframe):
             .attr("class", "tooltip")
             .style("opacity", 0);
 
-        // Calculate positions based on generation (hierarchical layout)
-        const generations = {{}};
-        nodes.forEach(n => {{
-            if (!generations[n.generation]) generations[n.generation] = [];
-            generations[n.generation].push(n);
-        }});
+        const levelHeight = 140;
+        const startY = 80;
 
-        const levelHeight = 120;
-        const startY = 60;
-
+        // Position nodes with dynamic spacing based on generation size
         Object.keys(generations).sort((a,b) => a-b).forEach(gen => {{
             const genNodes = generations[gen];
-            const levelWidth = width - 100;
-            const spacing = levelWidth / (genNodes.length + 1);
+            const spacing = dynamicWidth / (genNodes.length + 1);
             genNodes.forEach((n, i) => {{
-                n.x = spacing * (i + 1) + 50;
+                n.x = spacing * (i + 1);
                 n.y = startY + (gen - 1) * levelHeight;
             }});
         }});
@@ -555,7 +558,7 @@ def generate_graph_html(dataframe):
                 const target = nodeMap[d.target];
                 if (!source || !target) return "";
                 const midY = (source.y + target.y) / 2;
-                return `M${{source.x}},${{source.y + 20}} C${{source.x}},${{midY}} ${{target.x}},${{midY}} ${{target.x}},${{target.y - 20}}`;
+                return `M${{source.x}},${{source.y + 30}} C${{source.x}},${{midY}} ${{target.x}},${{midY}} ${{target.x}},${{target.y - 30}}`;
             }});
 
         // Draw nodes
@@ -570,31 +573,32 @@ def generate_graph_html(dataframe):
                 .on("drag", dragged)
                 .on("end", dragended));
 
-        // Add shapes based on gender
+        // Add shapes based on gender - larger sizes
         node.each(function(d) {{
             const el = d3.select(this);
+            const baseSize = d.size + 10;
             if (d.gender === "Female") {{
                 el.append("ellipse")
-                    .attr("rx", d.size + 8)
-                    .attr("ry", d.size)
+                    .attr("rx", baseSize + 20)
+                    .attr("ry", baseSize + 5)
                     .attr("fill", d.color);
             }} else {{
                 el.append("rect")
-                    .attr("x", -(d.size + 5))
-                    .attr("y", -d.size)
-                    .attr("width", (d.size + 5) * 2)
-                    .attr("height", d.size * 2)
-                    .attr("rx", 3)
+                    .attr("x", -(baseSize + 15))
+                    .attr("y", -(baseSize))
+                    .attr("width", (baseSize + 15) * 2)
+                    .attr("height", (baseSize) * 2)
+                    .attr("rx", 5)
                     .attr("fill", d.color);
             }}
         }});
 
-        // Add labels
+        // Add labels - larger text with better spacing
         node.each(function(d) {{
             const el = d3.select(this);
             d.label.forEach((line, i) => {{
                 el.append("text")
-                    .attr("dy", (i - d.label.length/2 + 0.5) * 12)
+                    .attr("dy", (i - d.label.length/2 + 0.5) * 16)
                     .attr("text-anchor", "middle")
                     .text(line);
             }});
@@ -604,8 +608,8 @@ def generate_graph_html(dataframe):
         node.on("mouseover", (event, d) => {{
             tooltip.transition().duration(200).style("opacity", 1);
             tooltip.html(d.tooltip)
-                .style("left", (event.pageX + 10) + "px")
-                .style("top", (event.pageY - 10) + "px");
+                .style("left", (event.pageX + 15) + "px")
+                .style("top", (event.pageY - 15) + "px");
         }})
         .on("mouseout", () => {{
             tooltip.transition().duration(500).style("opacity", 0);
@@ -625,14 +629,15 @@ def generate_graph_html(dataframe):
                 const target = nodeMap[l.target];
                 if (!source || !target) return "";
                 const midY = (source.y + target.y) / 2;
-                return `M${{source.x}},${{source.y + 20}} C${{source.x}},${{midY}} ${{target.x}},${{midY}} ${{target.x}},${{target.y - 20}}`;
+                return `M${{source.x}},${{source.y + 30}} C${{source.x}},${{midY}} ${{target.x}},${{midY}} ${{target.x}},${{target.y - 30}}`;
             }});
         }}
 
         function dragended(event, d) {{}}
 
-        // Center the view
-        svg.call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(0.9));
+        // Initial zoom to fit content
+        const initialScale = Math.min(1, 900 / dynamicWidth);
+        svg.call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(initialScale));
     </script>
 </body>
 </html>'''
