@@ -1,228 +1,263 @@
 [
   {
-    "id": "root_1",
-    "name": "Yosef Acher",
+    "id": "yosef_ascher",
+    "name": "Yosef Ascher",
     "lifespan": "1775-?",
     "generation": 1,
-    "highlighted": false
+    "note": "Patriarch of the Ascher family"
   },
-  
-  // --- Moshe Acher Branch (Left Main) ---
+
   {
-    "id": "moshe_acher_1800",
-    "name": "Moshe Acher",
-    "lifespan": "1800-1876",
-    "parent_id": "root_1",
+    "id": "moshe_ascher",
+    "name": "Moshe Ascher",
+    "lifespan": "c.1800-1856",
+    "parent_id": "yosef_ascher",
     "generation": 2
   },
   {
-    "id": "caden",
-    "name": "Caden",
-    "lifespan": "1800-?",
-    "parent_id": "root_1",
-    "note": "Listed alongside Moshe",
+    "id": "a_cohen",
+    "name": "? (daughter)",
+    "parent_id": "yosef_ascher",
+    "spouse": "A. Cohen",
     "generation": 2
   },
+
   {
     "id": "haim_bechor",
     "name": "Haim Bechor",
-    "lifespan": "1832-1900",
-    "parent_id": "moshe_acher_1800",
-    "generation": 3
-  },
-  {
-    "id": "rivka_1837",
-    "name": "Rivka",
-    "lifespan": "1837-1900",
-    "parent_id": "moshe_acher_1800",
+    "lifespan": "1831-1900",
+    "parent_id": "moshe_ascher",
+    "spouse": "Rivka (1837-1900)",
     "generation": 3
   },
   {
     "id": "ephraim_yosef",
-    "name": "Ephraim Yosef Acher",
-    "lifespan": "1850-1914",
-    "spouse": "Ester (1855-1925)",
-    "parent_id": "moshe_acher_1800",
+    "name": "Ephraim Yosef Ascher",
+    "lifespan": "1856-1914",
+    "parent_id": "moshe_ascher",
+    "generation": 3
+  },
+  {
+    "id": "emmanuel_1841",
+    "name": "Emmanuel",
+    "lifespan": "1841-?",
+    "parent_id": "moshe_ascher",
+    "spouse": "? (1861-?)",
     "generation": 3
   },
 
-  // --- Ephraim's Children (Gen 4) ---
   {
-    "id": "moshe_moise",
-    "name": "Moshe (Moise)",
-    "lifespan": "1878-1955",
-    "spouse": "Alegra Simha Politi (1885-195?)",
-    "parent_id": "ephraim_yosef",
+    "id": "ephraim_1855",
+    "name": "Ephraim",
+    "lifespan": "1855-1935",
+    "parent_id": "haim_bechor",
+    "spouse": "Yoshka (1858-1905)",
+    "note": "No kids",
     "generation": 4
   },
   {
-    "id": "perla",
-    "name": "Perla",
-    "lifespan": "1882-1943?",
-    "spouse": "Dr. Shlomo Isaac Sidi (1879-1940)",
-    "parent_id": "ephraim_yosef",
+    "id": "avraham_1893",
+    "name": "Avraham",
+    "lifespan": "1893-1906",
+    "parent_id": "haim_bechor",
+    "spouse": "Helene",
+    "note": "2 kids",
     "generation": 4
   },
+  {
+    "id": "bechor",
+    "name": "Bechor",
+    "parent_id": "avraham_1893",
+    "generation": 5
+  },
+  {
+    "id": "eliahu",
+    "name": "Eliahu",
+    "lifespan": "1924-1993",
+    "parent_id": "bechor",
+    "spouse": "Estreange",
+    "note": "2-7 kids",
+    "generation": 6
+  },
+  {
+    "id": "leonardo",
+    "name": "Leonardo",
+    "parent_id": "eliahu",
+    "generation": 7
+  },
+  {
+    "id": "bucbar_primo",
+    "name": "Bucbar Primo",
+    "lifespan": "1954-",
+    "parent_id": "leonardo",
+    "spouse": "Santiago",
+    "location": "USA (NY)",
+    "highlighted": true,
+    "generation": 8
+  },
+
+  {
+    "id": "shmuel",
+    "name": "Shmuel",
+    "lifespan": "1878-1932",
+    "parent_id": "emmanuel_1841",
+    "spouse": "? (1887-1946)",
+    "generation": 4
+  },
+  {
+    "id": "rachel_1895",
+    "name": "Rachel",
+    "lifespan": "1895-1940",
+    "parent_id": "shmuel",
+    "spouse": "Mosc (?)",
+    "generation": 5
+  },
+  {
+    "id": "susanna_sultana",
+    "name": "Susanna (Sultana)",
+    "lifespan": "1918-2004",
+    "parent_id": "rachel_1895",
+    "note": "2 kids",
+    "generation": 6
+  },
+  {
+    "id": "emmanuel_linor",
+    "name": "Emmanuel",
+    "lifespan": "1981-",
+    "parent_id": "susanna_sultana",
+    "spouse": "Linor Lachlon (1981-2008)",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 7
+  },
+  {
+    "id": "jd_ashkenaze",
+    "name": "J.d.",
+    "lifespan": "1988-",
+    "parent_id": "susanna_sultana",
+    "note": "Ashkenaze",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 7
+  },
+  {
+    "id": "sara_huyo",
+    "name": "Sara (Huyo)",
+    "lifespan": "1956-",
+    "parent_id": "susanna_sultana",
+    "location": "Canada/Australia",
+    "highlighted": true,
+    "generation": 7
+  },
+  {
+    "id": "michal_michal",
+    "name": "Michal (Michal)",
+    "parent_id": "susanna_sultana",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 7
+  },
+
   {
     "id": "elia",
     "name": "Elia",
     "lifespan": "1884-1950",
-    "spouse": "Kaden",
     "parent_id": "ephraim_yosef",
+    "spouse": "Kaden (1885-1965)",
     "generation": 4
   },
-
-  // --- Sub-Branch: Moshe (Moise) Descendants (Dahan/Dayan/Acher) ---
   {
-    "id": "matilda_dahan",
-    "name": "Matilda Dahan",
-    "lifespan": "1953 (Death?)",
-    "spouse": "Haim Dahan",
-    "parent_id": "moshe_moise",
+    "id": "shimon",
+    "name": "Shimon",
+    "lifespan": "1914-1985",
+    "parent_id": "elia",
+    "note": "2 kids",
     "generation": 5
   },
   {
-    "id": "itzchak_dahan",
-    "name": "Itzchak",
-    "lifespan": "1975-",
-    "parent_id": "matilda_dahan",
-    "location": "Israel",
-    "highlighted": true,
+    "id": "ora",
+    "name": "Ora",
+    "parent_id": "shimon",
     "generation": 6
   },
   {
-    "id": "eram_dahan",
-    "name": "Eram",
-    "lifespan": "1977-",
-    "parent_id": "matilda_dahan",
-    "location": "Israel",
-    "highlighted": true,
+    "id": "bella",
+    "name": "Bella",
+    "parent_id": "shimon",
     "generation": 6
   },
   {
-    "id": "haim_dahan_jr",
-    "name": "Haim",
+    "id": "cohit",
+    "name": "Cohit",
+    "parent_id": "ora",
+    "generation": 7
+  },
+  {
+    "id": "dafni_pap",
+    "name": "Dafni Pap",
+    "parent_id": "ora",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 7
+  },
+  {
+    "id": "herelle",
+    "name": "Herelle",
     "lifespan": "1985-",
-    "parent_id": "matilda_dahan",
+    "parent_id": "bella",
     "location": "Israel",
     "highlighted": true,
-    "generation": 6
+    "generation": 7
   },
   {
-    "id": "becki_dayan",
-    "name": "Becki (Dayan)",
-    "parent_id": "moshe_moise",
-    "generation": 5
-  },
-  {
-    "id": "sara_birk",
-    "name": "Sara (Birk)",
-    "lifespan": "1945-",
-    "parent_id": "becki_dayan",
-    "highlighted": true,
-    "generation": 6
-  },
-  {
-    "id": "haim_danon",
-    "name": "Haim Danon",
-    "lifespan": "1948-",
-    "parent_id": "becki_dayan",
-    "highlighted": true,
-    "generation": 6
-  },
-  {
-    "id": "ester_reichart",
-    "name": "Ester (Reichart)",
-    "parent_id": "moshe_moise",
-    "generation": 5
-  },
-  {
-    "id": "rachel_reichart",
-    "name": "Rachel",
-    "lifespan": "1959-",
-    "parent_id": "ester_reichart",
-    "highlighted": true,
-    "location": "Brazil",
-    "generation": 6
-  },
-  {
-    "id": "alberto_reichart",
-    "name": "Alberto",
-    "lifespan": "1961-",
-    "parent_id": "ester_reichart",
-    "highlighted": true,
-    "location": "Brazil",
-    "generation": 6
-  },
-  {
-    "id": "david_reichart",
-    "name": "David",
-    "lifespan": "1988-",
-    "parent_id": "ester_reichart",
-    "highlighted": true,
+    "id": "sivan_alon",
+    "name": "Sivan Alon",
+    "lifespan": "1985-",
+    "parent_id": "bella",
     "location": "Israel",
-    "generation": 6
-  },
-  {
-    "id": "jack_acher",
-    "name": "Jack (Jacques)",
-    "parent_id": "moshe_moise",
-    "generation": 5
-  },
-  {
-    "id": "allen_acher",
-    "name": "Allen",
-    "lifespan": "1952-",
-    "parent_id": "jack_acher",
     "highlighted": true,
-    "location": "USA (MA)",
-    "generation": 6
-  },
-  {
-    "id": "wendy_acher",
-    "name": "Wendy",
-    "lifespan": "1956-",
-    "parent_id": "jack_acher",
-    "highlighted": true,
-    "location": "USA (NY)",
-    "generation": 6
-  },
-  {
-    "id": "herbert_acher",
-    "name": "Herbert",
-    "parent_id": "moshe_moise",
-    "generation": 5
-  },
-  {
-    "id": "gloria_acher",
-    "name": "Gloria",
-    "lifespan": "1939-",
-    "parent_id": "herbert_acher",
-    "highlighted": true,
-    "location": "USA (AZ)",
-    "generation": 6
+    "generation": 7
   },
 
-  // --- Sub-Branch: Perla Descendants (Sidi) ---
   {
-    "id": "menashe_sidi",
-    "name": "Menashe",
+    "id": "perla",
+    "name": "Perla",
+    "lifespan": "1887-1948",
+    "parent_id": "ephraim_yosef",
+    "spouse": "Dr. Shlomo Isaac Sidi (1879-1940)",
+    "note": "8 kids",
+    "generation": 4
+  },
+  {
+    "id": "moshe_sidi",
+    "name": "Moshe (Sidi)",
     "parent_id": "perla",
     "generation": 5
   },
   {
-    "id": "orit_sidi",
-    "name": "Orit (Sidi)",
-    "lifespan": "1960-",
-    "parent_id": "menashe_sidi",
-    "highlighted": true,
-    "generation": 6
+    "id": "ester_sidi",
+    "name": "Ester (Sidi)",
+    "parent_id": "perla",
+    "generation": 5
   },
   {
-    "id": "avner_sidi",
-    "name": "Avner (Sidi)",
-    "lifespan": "1949-",
-    "parent_id": "menashe_sidi",
+    "id": "david_sidi",
+    "name": "David (Sidi)",
+    "parent_id": "perla",
+    "generation": 5
+  },
+  {
+    "id": "leah_sidi",
+    "name": "Leah (Sidi)",
+    "parent_id": "perla",
+    "generation": 5
+  },
+  {
+    "id": "sidi_1960",
+    "name": "S. (Sidi)",
+    "lifespan": "1960-",
+    "parent_id": "moshe_sidi",
+    "location": "Israel",
     "highlighted": true,
     "generation": 6
   },
@@ -230,55 +265,341 @@
     "id": "nira_sidi",
     "name": "Nira (Sidi)",
     "lifespan": "1947-",
-    "parent_id": "david_sidi", 
-    "note": "Parent connection inferred from grouping",
+    "parent_id": "david_sidi",
+    "location": "Israel",
     "highlighted": true,
     "generation": 6
   },
   {
-    "id": "david_sidi",
-    "name": "David",
-    "parent_id": "perla",
-    "generation": 5
-  },
-  {
-    "id": "estra_tuchir",
-    "name": "Estra (Tuchir?)",
-    "parent_id": "perla",
-    "generation": 5
-  },
-  {
-    "id": "leah_tuchir",
-    "name": "Leah (Tuchir)",
-    "lifespan": "1950-",
-    "parent_id": "estra_tuchir",
+    "id": "avner_sidi",
+    "name": "Avner (Sidi)",
+    "lifespan": "1949-",
+    "parent_id": "david_sidi",
+    "location": "Israel",
     "highlighted": true,
     "generation": 6
   },
   {
-    "id": "ester_dosi",
-    "name": "Ester (Dosi?)",
-    "parent_id": "perla",
+    "id": "orit_sidi",
+    "name": "Orit (Sidi)",
+    "lifespan": "1960-",
+    "parent_id": "david_sidi",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "eyal_sidi",
+    "name": "Eyal",
+    "lifespan": "1953-",
+    "parent_id": "ester_sidi",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "itzchak_sidi",
+    "name": "Itzchak",
+    "lifespan": "1945-",
+    "parent_id": "ester_sidi",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "dvorah_sidi",
+    "name": "Dvorah",
+    "lifespan": "1949-",
+    "parent_id": "ester_sidi",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "haim_sidi",
+    "name": "Haim",
+    "lifespan": "1943-",
+    "parent_id": "leah_sidi",
+    "spouse": "* Haim (1943)",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+
+  {
+    "id": "moshe_moise",
+    "name": "Moshe (Moise)",
+    "lifespan": "1878-1955",
+    "parent_id": "ephraim_yosef",
+    "spouse": "Alegra Simha Politi (1885-195?)",
+    "generation": 4
+  },
+  {
+    "id": "matilda",
+    "name": "Matilda",
+    "parent_id": "moshe_moise",
+    "spouse": "Haim Dahan",
     "generation": 5
   },
   {
-    "id": "hillel_gur",
-    "name": "Hillel (Gur)",
-    "lifespan": "1958-",
-    "parent_id": "ester_dosi",
+    "id": "becki",
+    "name": "Becki",
+    "parent_id": "moshe_moise",
+    "generation": 5
+  },
+  {
+    "id": "ester_reichart",
+    "name": "Ester",
+    "parent_id": "moshe_moise",
+    "spouse": "Reichart",
+    "generation": 5
+  },
+  {
+    "id": "jack_jacques",
+    "name": "Jack (Jacques)",
+    "parent_id": "moshe_moise",
+    "generation": 5
+  },
+  {
+    "id": "herbert",
+    "name": "Herbert",
+    "parent_id": "moshe_moise",
+    "generation": 5
+  },
+  {
+    "id": "birk_1948",
+    "name": "Birk",
+    "lifespan": "1948-",
+    "parent_id": "becki",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "haim_danon",
+    "name": "Haim Danon",
+    "lifespan": "1945-",
+    "parent_id": "becki",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "rachel_brazil",
+    "name": "Rachel",
+    "lifespan": "1955-",
+    "parent_id": "ester_reichart",
+    "location": "Brazil",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "dora",
+    "name": "Dora",
+    "parent_id": "ester_reichart",
+    "generation": 6
+  },
+  {
+    "id": "alberto_1943",
+    "name": "Alberto",
+    "lifespan": "1943-",
+    "parent_id": "herbert",
+    "spouse": "* David (1952)",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "allen",
+    "name": "Allen",
+    "lifespan": "1945-",
+    "parent_id": "jack_jacques",
+    "location": "USA (MA)",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "wendy",
+    "name": "Wendy",
+    "lifespan": "1943-",
+    "parent_id": "jack_jacques",
+    "location": "USA (NY)",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "gloria",
+    "name": "Gloria",
+    "lifespan": "1944-",
+    "parent_id": "herbert",
+    "spouse": "Elison",
+    "location": "USA (AZ)",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "itzchak_matilda",
+    "name": "Itzchak",
+    "lifespan": "1975-",
+    "parent_id": "matilda",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "eram_matilda",
+    "name": "Eram",
+    "lifespan": "1977-",
+    "parent_id": "matilda",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "haim_matilda",
+    "name": "Haim",
+    "lifespan": "1985-",
+    "parent_id": "matilda",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+
+  {
+    "id": "albert",
+    "name": "Albert",
+    "lifespan": "?-1961",
+    "parent_id": "ephraim_yosef",
+    "generation": 4
+  },
+  {
+    "id": "mordechai_mondi",
+    "name": "Mordechai (Mondi)",
+    "parent_id": "albert",
+    "generation": 5
+  },
+  {
+    "id": "emmanuel_1937",
+    "name": "Emmanuel",
+    "lifespan": "1905-1937",
+    "parent_id": "albert",
+    "generation": 5
+  },
+  {
+    "id": "gisela",
+    "name": "Gisela",
+    "lifespan": "1959-",
+    "parent_id": "emmanuel_1937",
+    "location": "USA",
+    "highlighted": true,
+    "generation": 6
+  },
+
+  {
+    "id": "sarota",
+    "name": "Sarota",
+    "lifespan": "1848-1920",
+    "parent_id": "yosef_ascher",
+    "spouse": "Bension",
+    "location": "Monastir",
+    "generation": 2
+  },
+  {
+    "id": "alegra_aki",
+    "name": "Alegra (Aki)",
+    "lifespan": "1886-1926",
+    "parent_id": "sarota",
+    "generation": 3
+  },
+  {
+    "id": "sultana_susana",
+    "name": "Sultana (Susana)",
+    "lifespan": "1901-1977",
+    "parent_id": "sarota",
+    "spouse": "Salvador Lombroso",
+    "note": "5 kids",
+    "generation": 3
+  },
+  {
+    "id": "rosa",
+    "name": "Rosa",
+    "lifespan": "?-1919",
+    "parent_id": "sarota",
+    "generation": 3
+  },
+  {
+    "id": "sara_lombroso",
+    "name": "Sara (Lombroso)",
+    "lifespan": "1927-2011",
+    "parent_id": "sultana_susana",
+    "generation": 4
+  },
+  {
+    "id": "lipousky",
+    "name": "Lipousky",
+    "lifespan": "1957-",
+    "parent_id": "sara_lombroso",
+    "spouse": "Palombo",
+    "location": "USA (CA)",
+    "highlighted": true,
+    "generation": 5
+  },
+  {
+    "id": "mishi",
+    "name": "Mishi",
+    "lifespan": "1882-1987",
+    "parent_id": "rosa",
+    "spouse": "Albert (Rebby) Sultana (1884-?)",
+    "generation": 4
+  },
+  {
+    "id": "bulisa_sultana",
+    "name": "Bulisa (Sultana)",
+    "lifespan": "1983-",
+    "parent_id": "mishi",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 5
+  },
+
+  {
+    "id": "s_aschi",
+    "name": "S. Aschi",
+    "lifespan": "1993-",
+    "parent_id": "ora",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 8
+  },
+  {
+    "id": "ira_gur",
+    "name": "Ira Gur",
+    "lifespan": "1960-",
+    "parent_id": "perla",
+    "location": "Israel",
     "highlighted": true,
     "generation": 6
   },
   {
     "id": "carmit_grinberg",
     "name": "Carmit (Grinberg)",
-    "lifespan": "1960-",
-    "parent_id": "ester_dosi",
+    "lifespan": "1968-",
+    "parent_id": "perla",
+    "location": "Israel",
     "highlighted": true,
     "generation": 6
   },
   {
-    "id": "haim_gur",
+    "id": "hillel_gur",
+    "name": "Hillel (Gur)",
+    "lifespan": "1958-",
+    "parent_id": "perla",
+    "location": "Israel",
+    "highlighted": true,
+    "generation": 6
+  },
+  {
+    "id": "haim_gur_congo",
     "name": "Haim Gur",
     "lifespan": "1986-",
     "parent_id": "hillel_gur",
@@ -287,215 +608,21 @@
     "generation": 7
   },
   {
-    "id": "moshe_sidi",
-    "name": "Moshe",
-    "parent_id": "perla",
-    "generation": 5
-  },
-  {
-    "id": "hadas",
-    "name": "Hadas",
-    "lifespan": "1951-",
-    "parent_id": "moshe_sidi",
-    "highlighted": true,
-    "generation": 6
-  },
-  {
-    "id": "bedrks",
-    "name": "Bedrks (?)",
+    "id": "rachel_peled",
+    "name": "Rachel (Peled)",
     "lifespan": "1961-",
-    "parent_id": "moshe_sidi",
-    "highlighted": true,
-    "generation": 6
-  },
-
-  // --- Sub-Branch: Elia Descendants ---
-  {
-    "id": "shimon",
-    "name": "Shimon",
-    "lifespan": "1914-1985",
-    "parent_id": "elia",
-    "generation": 5
-  },
-  {
-    "id": "bella",
-    "name": "Bella",
-    "parent_id": "elia",
-    "generation": 5
-  },
-  {
-    "id": "shay",
-    "name": "Shay",
-    "lifespan": "1993-",
-    "parent_id": "bella",
-    "location": "USA",
-    "highlighted": true,
-    "generation": 6
-  },
-
-  // --- Emmanuel Acher Branch (Right Side) ---
-  {
-    "id": "emmanuel_acher_1841",
-    "name": "Emmanuel",
-    "lifespan": "1841-?",
-    "spouse": "Rivka",
-    "parent_id": "moshe_acher_1800",
-    "generation": 3
-  },
-  {
-    "id": "rachel_1895",
-    "name": "Rachel",
-    "lifespan": "1895-1942",
-    "parent_id": "emmanuel_acher_1841",
-    "generation": 4
-  },
-  {
-    "id": "marko_levy",
-    "name": "Marko Levy",
-    "lifespan": "1893-1942",
-    "parent_id": "rachel_1895",
-    "note": "Spouse implied as Levy",
-    "generation": 5
-  },
-  {
-    "id": "susanna_sultana",
-    "name": "Susanna (Sultana)",
-    "lifespan": "1918-2001",
-    "spouse": "Avraham Levy",
-    "parent_id": "rachel_1895",
-    "generation": 5
-  },
-  {
-    "id": "rachel_marks",
-    "name": "Rachel (Marks)",
     "parent_id": "susanna_sultana",
-    "highlighted": true,
+    "spouse": "Nachum (1961)",
     "location": "Israel",
-    "generation": 6
-  },
-  {
-    "id": "sara_huyo",
-    "name": "Sara (Huyo?)",
-    "lifespan": "1950-",
-    "parent_id": "susanna_sultana",
     "highlighted": true,
-    "location": "Australia",
-    "generation": 6
-  },
-
-  // --- Avraham Branch (Far Right) ---
-  {
-    "id": "avraham_1836",
-    "name": "Avraham",
-    "lifespan": "1836-1906",
-    "spouse": "Rachel Melamed",
-    "parent_id": "moshe_acher_1800",
-    "generation": 3
+    "generation": 7
   },
   {
-    "id": "bechora",
-    "name": "Bechora (Ester?)",
-    "parent_id": "avraham_1836",
-    "generation": 4
-  },
-  {
-    "id": "emmanuel_1921",
-    "name": "Emmanuel",
-    "lifespan": "1921-2003",
-    "spouse": "Lima Luna (Halfon)",
-    "parent_id": "bechora",
-    "generation": 5
-  },
-  {
-    "id": "mordechai_mondi",
-    "name": "Mordechai (Mondi)",
-    "lifespan": "1956-",
-    "parent_id": "emmanuel_1921",
-    "highlighted": true,
+    "id": "barzilei_16in",
+    "name": "Barzilei",
+    "parent_id": "rachel_peled",
     "location": "Israel",
-    "generation": 6
-  },
-  {
-    "id": "ida_bronfman",
-    "name": "Ida (Bronfman)",
-    "lifespan": "1948-",
-    "parent_id": "emmanuel_1921",
     "highlighted": true,
-    "location": "Israel",
-    "generation": 6
-  },
-  {
-    "id": "buchora_prima",
-    "name": "Buchora (Prima?)",
-    "lifespan": "1954-",
-    "parent_id": "emmanuel_1921",
-    "highlighted": true,
-    "location": "NY USA",
-    "generation": 6
-  },
-
-  // --- Bottom Left Branches (Sarota, Rosa, Sultana) ---
-  {
-    "id": "sarota",
-    "name": "Sarota",
-    "lifespan": "1848-1920",
-    "spouse": "Bension",
-    "parent_id": "root_1",
-    "generation": 2
-  },
-  {
-    "id": "alegra_sarota",
-    "name": "Alegra (Aki)",
-    "lifespan": "1896-1926",
-    "parent_id": "sarota",
-    "generation": 3
-  },
-  {
-    "id": "mordechai_unknown",
-    "name": "Mordechai",
-    "lifespan": "?-1938",
-    "spouse": "Rachel Arakie",
-    "parent_id": "alegra_sarota",
-    "generation": 4
-  },
-  {
-    "id": "sultana_susana",
-    "name": "Sultana (Susana)",
-    "lifespan": "1901-1977",
-    "spouse": "Salvador Lombroso",
-    "parent_id": "alegra_sarota",
-    "generation": 4
-  },
-  {
-    "id": "sara_lombroso",
-    "name": "Sara (Lombroso)",
-    "lifespan": "1927-2011",
-    "spouse": "Bebi",
-    "parent_id": "sultana_susana",
-    "generation": 5
-  },
-  {
-    "id": "lipousky_palombo",
-    "name": "Lipousky (Palombo?)",
-    "lifespan": "1958-",
-    "parent_id": "sara_lombroso",
-    "location": "USA (CA)",
-    "generation": 6
-  },
-   {
-    "id": "rosa",
-    "name": "Rosa",
-    "lifespan": "1870-1914",
-    "spouse": "Haim Rabi",
-    "parent_id": "sarota",
-    "generation": 3
-  },
-  {
-    "id": "mishi",
-    "name": "Mishi",
-    "lifespan": "1882-1987",
-    "spouse": "Albert (Rebby) Sultana",
-    "parent_id": "rosa",
-    "generation": 4
+    "generation": 8
   }
 ]
