@@ -27,11 +27,21 @@ st.markdown("""
 
 st.markdown('<h1 class="main-header">🌳 Ascher Family Digital Lineage System</h1>', unsafe_allow_html=True)
 
-# Display original document on main page
+# Display original document on main page (rotated 90 degrees)
 original_img_path = "original_tree.jpg"
 if os.path.exists(original_img_path):
-    with st.expander("📜 View Original Handwritten Document", expanded=False):
-        st.image(original_img_path, caption="Original Ascher Family Tree Document", use_container_width=True)
+    with st.expander("📜 View Original Handwritten Document", expanded=True):
+        import base64
+        with open(original_img_path, "rb") as img_file:
+            img_base64 = base64.b64encode(img_file.read()).decode()
+        st.markdown(f'''
+        <div style="text-align: center; margin: 20px 0;">
+            <img src="data:image/jpeg;base64,{img_base64}"
+                 style="transform: rotate(90deg); max-width: 80%; height: auto; margin: 50px auto;"
+                 alt="Original Ascher Family Tree Document">
+            <p style="margin-top: 60px; color: #666;">Original Ascher Family Tree Document</p>
+        </div>
+        ''', unsafe_allow_html=True)
 
 # Create tabs for better organization
 tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "ℹ️ Help"])
@@ -638,9 +648,29 @@ def generate_graph_html(dataframe):
 
         function dragended(event, d) {{}}
 
-        // Initial zoom to fit content
-        const initialScale = Math.min(1, 900 / dynamicWidth);
-        svg.call(zoom.transform, d3.zoomIdentity.translate(0, 0).scale(initialScale));
+        // Calculate bounding box of all nodes to center the view
+        const minX = Math.min(...nodes.map(n => n.x));
+        const maxX = Math.max(...nodes.map(n => n.x));
+        const minY = Math.min(...nodes.map(n => n.y));
+        const maxY = Math.max(...nodes.map(n => n.y));
+
+        const contentWidth = maxX - minX + 200;  // Add padding
+        const contentHeight = maxY - minY + 200;
+        const contentCenterX = (minX + maxX) / 2;
+        const contentCenterY = (minY + maxY) / 2;
+
+        // Calculate scale to fit content
+        const scaleX = (window.innerWidth || 900) / contentWidth;
+        const scaleY = 650 / contentHeight;
+        const initialScale = Math.min(scaleX, scaleY, 1) * 0.85;
+
+        // Calculate translation to center content
+        const viewCenterX = (window.innerWidth || 900) / 2;
+        const viewCenterY = 350;
+        const translateX = viewCenterX - contentCenterX * initialScale;
+        const translateY = viewCenterY - contentCenterY * initialScale;
+
+        svg.call(zoom.transform, d3.zoomIdentity.translate(translateX, translateY).scale(initialScale));
     </script>
 </body>
 </html>'''
