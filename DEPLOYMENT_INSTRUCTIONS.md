@@ -1,4 +1,4 @@
-# 🚀 Deploy Your Asher Family Tree to the Web
+# 🚀 Deploy Your Ascher Family Tree to the Web
 
 Follow these simple steps to make your family tree accessible to everyone via a shareable link!
 
@@ -8,8 +8,8 @@ Follow these simple steps to make your family tree accessible to everyone via a 
    - Sign in to your GitHub account (or create one at https://github.com/signup)
 
 2. **Create a new repository**:
-   - Repository name: `asher-family-tree`
-   - Description: "Interactive Asher Family Genealogy Tree"
+   - Repository name: `ascher-family-tree`
+   - Description: "Interactive Ascher Family Genealogy Tree"
    - Set to **Public** (required for free Streamlit hosting)
    - Do NOT initialize with README (we already have one)
    - Click "Create repository"
@@ -21,7 +21,7 @@ Follow these simple steps to make your family tree accessible to everyone via a 
    cd "/Users/eitan/Library/CloudStorage/GoogleDrive-eitanas85@gmail.com/My Drive/Personal/AsherFamily"
    
    # Add your GitHub repository as remote
-   git remote add origin https://github.com/YOUR_USERNAME/asher-family-tree.git
+   git remote add origin https://github.com/YOUR_USERNAME/ascher-family-tree.git
    
    # Push your code
    git branch -M main
@@ -40,7 +40,7 @@ Follow these simple steps to make your family tree accessible to everyone via a 
 
 3. **Deploy your app**:
    - Click "New app"
-   - Select your repository: `YOUR_USERNAME/asher-family-tree`
+   - Select your repository: `YOUR_USERNAME/ascher-family-tree`
    - Branch: `main`
    - Main file path: `asherFamTree.py`
    - Click "Deploy!"
@@ -53,11 +53,11 @@ Follow these simple steps to make your family tree accessible to everyone via a 
 
 Once deployed, you'll get a URL like:
 ```
-https://asher-family-tree.streamlit.app
+https://ascher-family-tree.streamlit.app
 ```
 or
 ```
-https://YOUR_USERNAME-asher-family-tree-asherfamtree-XXXXX.streamlit.app
+https://YOUR_USERNAME-ascher-family-tree-ascherfamtree-XXXXX.streamlit.app
 ```
 
 ## Step 4: Share on WhatsApp 📱
@@ -66,7 +66,7 @@ https://YOUR_USERNAME-asher-family-tree-asherfamtree-XXXXX.streamlit.app
 
 2. **Create a nice WhatsApp message**:
    ```
-   🌳 *Asher Family Tree* 🌳
+   🌳 *Ascher Family Tree* 🌳
    
    Hello family! I've created an interactive family tree for us!
    
@@ -129,7 +129,7 @@ To update the family tree with new data:
 
 ## 💡 Pro Tips
 
-1. **Custom URL**: You can set a custom subdomain in Streamlit settings (e.g., `asherfamily.streamlit.app`)
+1. **Custom URL**: You can set a custom subdomain in Streamlit settings (e.g., `ascherfamily.streamlit.app`)
 
 2. **Privacy**: While the repository is public, the family data is only viewable through the app
 

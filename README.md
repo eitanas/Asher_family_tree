@@ -1,6 +1,6 @@
-# Asher Family Digital Lineage System 🌳
+# Ascher Family Digital Lineage System 🌳
 
-![Asher Family Tree Original Document](original_tree.jpg)
+![Ascher Family Tree Original Document](original_tree.jpg)
 
 An interactive family tree visualization and genealogy management system built with Python and Streamlit.
 
@@ -180,7 +180,7 @@ Potential improvements for future versions:
 
 ## Credits
 
-Developed as a comprehensive genealogical tool for the Asher family lineage tracking.
+Developed as a comprehensive genealogical tool for the Ascher family lineage tracking.
 
 ## License
 

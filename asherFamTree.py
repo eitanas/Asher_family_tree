@@ -25,13 +25,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<h1 class="main-header">🌳 Asher Family Digital Lineage System</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="main-header">🌳 Ascher Family Digital Lineage System</h1>', unsafe_allow_html=True)
 
 # Display original document on main page
 original_img_path = "original_tree.jpg"
 if os.path.exists(original_img_path):
     with st.expander("📜 View Original Handwritten Document", expanded=False):
-        st.image(original_img_path, caption="Original Asher Family Tree Document", use_container_width=True)
+        st.image(original_img_path, caption="Original Ascher Family Tree Document", use_container_width=True)
 
 # Create tabs for better organization
 tab1, tab2, tab3, tab4 = st.tabs(["📝 Data Entry", "🕸️ Family Tree", "📊 Statistics", "ℹ️ Help"])
@@ -827,7 +827,7 @@ csv = edited_df.to_csv(index=False).encode('utf-8')
 st.sidebar.download_button(
     "📥 Download as CSV",
     csv,
-    "asher_family_tree.csv",
+    "ascher_family_tree.csv",
     "text/csv",
     key='download-csv'
 )
@@ -837,7 +837,7 @@ json_data = edited_df.to_json(orient='records', indent=2)
 st.sidebar.download_button(
     "📥 Download as JSON",
     json_data,
-    "asher_family_tree.json",
+    "ascher_family_tree.json",
     "application/json",
     key='download-json'
 )
